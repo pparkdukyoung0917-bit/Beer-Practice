@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Beer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #141210;
+            color: #f3ece1;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1510 0%, #12100c 100%);
+            border-bottom: 1px solid #3a2f25;
+            padding: 28px 20px 24px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #f3ece1;
+        }
+
+        header p {
+            margin: 0;
+            color: #9e8f7b;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        /* 검색창 & 상단 대륙 필터 탭 */
+        .controls-area {
+            max-width: 1180px;
+            margin: 16px auto 8px auto;
+            padding: 0 16px;
+            text-align: center;
+        }
+
+        .search-box {
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 460px;
+            padding: 11px 18px;
+            border-radius: 25px;
+            border: 1px solid #8c5d23;
+            background-color: #211b17;
+            color: #f3ece1;
+            font-size: 14.5px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #f4b961;
+            box-shadow: 0 0 0 2px rgba(244, 185, 97, 0.2);
+        }
+
+        .top-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .top-tab-btn {
+            background-color: #241e1a;
+            color: #f3ece1;
+            border: 1px solid #8c5d23;
+            padding: 10px 20px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .top-tab-btn:hover,
+        .top-tab-btn.active {
+            background-color: #d98a2b;
+            color: #141210;
+            border-color: #d98a2b;
+            font-weight: bold;
+        }
+
+        /* 대륙별 아코디언 섹션 */
+        .continent-wrapper {
+            max-width: 1180px;
+            margin: 18px auto 48px auto;
+            padding: 0 16px;
+        }
+
+        .continent-section {
+            background-color: #1b1714;
+            border: 1px solid #352b22;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .continent-header {
+            width: 100%;
+            background-color: #251e18;
+            color: #f4b961;
+            border: none;
+            padding: 16px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.15rem;
+            font-weight: bold;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+
+        .continent-header:hover {
+            background-color: #30261e;
+        }
+
+        .continent-header .toggle-hint {
+            font-size: 0.85rem;
+            color: #d6c7b2;
+            font-weight: normal;
+            white-space: nowrap;
+            margin-left: 12px;
+        }
+
+        .continent-body {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 18px;
+        }
+
+        .continent-body.collapsed {
+            display: none;
+        }
+
+        /* 맥주 카드 (클릭 가능) */
+        .beer-card {
+            background-color: #241e19;
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            border: 1px solid #3c3127;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+            position: relative;
+        }
+
+        .beer-card:hover {
+            transform: translateY(-3px);
+            border-color: #f4b961;
+            box-shadow: 0 8px 18px rgba(217, 138, 43, 0.16);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .rank-badge {
+            background-color: #d98a2b;
+            color: #141210;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .country-badge {
+            background-color: #362a20;
+            color: #f4b961;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .beer-card h3 {
+            margin: 2px 0 4px 0;
+            font-size: 1.05rem;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+
+        .meta {
+            font-size: 12.5px;
+            color: #c7b59b;
+            margin-bottom: 6px;
+        }
+
+        .price-tag {
+            display: inline-block;
+            background-color: #2f251b;
+            border: 1px solid #594127;
+            color: #ffd38a;
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        .desc {
+            font-size: 13px;
+            line-height: 1.45;
+            color: #ddd3c5;
+            margin: 0 0 10px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .untappd-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #1a1520;
+            border: 1px solid #4a3a5c;
+            color: #e9d5ff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-left: 6px;
+        }
+
+        .fav-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #4a3f35;
+            background: rgba(20,18,16,0.75);
+            color: #9e8f7b;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 2;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fav-btn.on { color: #f4b961; border-color: #f4b961; background: rgba(244,185,97,0.12); }
+        .fav-btn:hover { border-color: #f4b961; color: #f4b961; }
+
+        /* 테이스팅 수치 영역 */
+        .tasting-box {
+            background-color: #181411;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid #2e251e;
+        }
+
+        .tasting-title {
+            font-size: 11px;
+            color: #e3b876;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .today-pick {
+            max-width: 1180px;
+            margin: 0 auto 18px;
+            padding: 0 16px;
+        }
+        .today-pick-inner {
+            background: linear-gradient(135deg, #2a2218 0%, #1c1712 100%);
+            border: 1px solid #4a3a28;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 20px;
+        }
+        .today-pick-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #f4b961;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .today-pick-name {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+        }
+        .today-pick-name:hover { color: #f4b961; }
+        .today-pick-meta { font-size: 13px; color: #c7b59b; }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: 48px 1fr 28px;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            color: #d6c7b2;
+        }
+
+        .bar-track {
+            height: 8px;
+            background-color: #2c241d;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #b86b19, #f4b961);
+            border-radius: 999px;
+        }
+
+        .stat-val {
+            text-align: right;
+            color: #f4b961;
+            font-weight: bold;
+        }
+
+        .card-cta {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #3a2f25;
+            font-size: 12.5px;
+            color: #f4b961;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .price-note {
+            text-align: center;
+            color: #9e8f7b;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* ================= 상세 팝업(모달) 스타일 ================= */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.78);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-dialog {
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background-color: #1f1915;
+            border: 1px solid #c88a36;
+            border-radius: 16px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #8c5d23;
+            background-color: rgba(20, 18, 16, 0.85);
+            color: #f4b961;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .modal-close-btn:hover {
+            background-color: #d98a2b;
+            color: #141210;
+        }
+
+        .modal-photo-box {
+            width: 100%;
+            height: 220px;
+            background: radial-gradient(circle at 30% 25%, #3d2814 0%, #19120c 75%);
+            border-bottom: 1px solid #382c22;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-emblem {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .photo-style-pill {
+            background-color: rgba(217, 138, 43, 0.2);
+            border: 1px solid #c88a36;
+            color: #f4b961;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: bold;
+        }
+
+        .photo-sub {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #c7b59b;
+        }
+
+        .modal-content {
+            padding: 22px;
+        }
+
+        .modal-title {
+            margin: 6px 0 6px 0;
+            font-size: 1.35rem;
+            color: #ffffff;
+        }
+
+        .modal-submeta {
+            font-size: 13.5px;
+            color: #d6c7b2;
+            margin-bottom: 14px;
+        }
+
+        .store-box {
+            background-color: #29211b;
+            border: 1px solid #594127;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 16px;
+        }
+
+        .store-box-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f4b961;
+            margin-bottom: 8px;
+        }
+
+        .store-price {
+            font-size: 14.5px;
+            font-weight: bold;
+            color: #ffd38a;
+            margin-bottom: 8px;
+        }
+
+        .store-channels {
+            font-size: 13.5px;
+            color: #e6dccd;
+            line-height: 1.55;
+            margin: 0 0 12px 0;
+        }
+
+        .store-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .store-link-btn {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #d98a2b;
+            color: #141210;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .store-link-btn:hover {
+            background-color: #f4b961;
+        }
+
+        .store-link-btn.secondary {
+            background-color: #362b22;
+            color: #f3ece1;
+            border: 1px solid #8c5d23;
+        }
+
+        .store-link-btn.secondary:hover {
+            background-color: #47382c;
+        }
+
+        /* ===== 카테고리(종류) 탭 ===== */
+        .cat-label { font-size: 12.5px; color: #c7b59b; font-weight: bold; margin: 4px 0 8px; text-align: left; }
+        .cat-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 8px; max-width: 640px; margin-left: auto; margin-right: auto; }
+        .cat-tabs .cat-tab-btn { flex: 1 1 90px; min-width: 90px; max-width: 140px; }
+        .cat-tab-btn {
+            background-color: #241e1a; color: #f3ece1;
+            border: 2px solid #3c3127; border-bottom: 4px solid var(--cat, #8c5d23);
+            padding: 12px 6px; border-radius: 12px; cursor: pointer;
+            font-size: 15px; font-weight: bold; line-height: 1.3; transition: all 0.2s;
+        }
+        .cat-tab-btn small { display: block; font-size: 12px; font-weight: normal; color: #c7b59b; margin-top: 2px; }
+        .cat-tab-btn:hover { border-color: var(--cat, #d98a2b); }
+        .cat-tab-btn.active { background-color: var(--cat, #d98a2b); border-color: var(--cat, #d98a2b); color: #141210; }
+        .cat-tab-btn.active small { color: #2b1d12; }
+        .sub-tabs { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+        .sub-tabs .top-tab-btn { padding: 7px 14px; font-size: 13px; }
+
+        .beer-card { border-top: 4px solid var(--cat, #3c3127); }
+        .cat-badge { background-color: var(--cat, #d98a2b); color: #141210; font-weight: bold; font-size: 12px; padding: 3px 10px; border-radius: 999px; }
+
+        @media (max-width: 720px) {
+            .cat-tabs .cat-tab-btn { flex: 1 1 80px; min-width: 80px; font-size: 14px; padding: 10px 4px; }
+            header h1 { font-size: 1.55rem; }
+            .continent-body { padding: 14px; grid-template-columns: 1fr; }
+            .continent-header { padding: 14px 16px; font-size: 1.05rem; }
+            .desc { font-size: 14.5px; }
+            .meta { font-size: 14px; }
+            .price-tag { font-size: 13px; }
+            .stat-row { font-size: 13px; grid-template-columns: 58px 1fr 36px; }
+        }
+
+        /* ===== 종류 설명 ===== */
+        .guide { text-align: left; background: #1b1714; border: 1px solid #352b22; border-radius: 14px; padding: 4px 16px 16px; margin-bottom: 18px; }
+        .guide summary { cursor: pointer; padding: 14px 0; font-weight: bold; font-size: 15.5px; color: #f4b961; }
+        .guide-intro { margin: 0 0 14px; font-size: 14.5px; line-height: 1.6; color: #e6dccd; }
+        .guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+        .guide-card { background: #241e19; border: 1px solid #3c3127; border-left: 6px solid var(--cat); border-radius: 12px; padding: 14px 16px; }
+        .guide-card h3 { margin: 0 0 8px; font-size: 1.1rem; color: #fff; }
+        .guide-card h3 small { color: #c7b59b; font-weight: normal; font-size: 0.8rem; margin-left: 4px; }
+        .guide-card p { margin: 0 0 7px; font-size: 14px; line-height: 1.6; color: #ddd3c5; }
+        .guide-card p b { color: #f4b961; }
+        .guide-card .g-line { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px; color: #fff; }
+        .guide-card .g-line b { color: var(--cat); }
+        .guide-go { margin-top: 4px; background: var(--cat); color: #141210; border: none; border-radius: 8px; padding: 9px 14px; font-weight: bold; font-size: 13.5px; cursor: pointer; min-height: 40px; }
+
+        /* ===== 사진 ===== */
+        .card-photo { display: none; height: 150px; margin: -6px -6px 12px; border-radius: 9px; background: #181411 center / cover no-repeat; position: relative; overflow: hidden; }
+        .card-photo.loading { display: block; background: linear-gradient(100deg, #1c1714 30%, #2a221c 50%, #1c1714 70%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+        .card-photo.ready { display: block; }
+        @keyframes shimmer { to { background-position: -200% 0; } }
+        .modal-photo-box.has-photo { padding: 0; cursor: zoom-in; }
+        .photo-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 10px; background: rgba(0,0,0,0.6); font-size: 11px; color: #ddd3c5; text-align: left; }
+        .photo-credit a { color: #f4b961; }
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 14px; gap: 10px; cursor: zoom-out; }
+        .lightbox.open { display: flex; }
+        .lightbox img { max-width: 96vw; max-height: 82vh; object-fit: contain; border-radius: 8px; }
+        .lightbox .lb-credit { font-size: 12px; color: #c7b59b; text-align: center; }
+        .lightbox .lb-credit a { color: #f4b961; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="main-title">World Beer</h1>
+        <p>Lager · Pilsner · Ale · IPA · Stout · Premium</p>
+    </header>
+
+    <div class="controls-area">
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="🔍 맥주 이름, 국가, 스타일 검색 (예: 필스너, 한국, 기네스, 홉)" oninput="handleSearch(this.value)">
+        </div>
+
+        <details class="guide" id="beer-guide" open>
+            <summary>Styles — Lager · Pilsner · Ale · IPA · Stout · Premium</summary>
+            <p class="guide-intro">맥주는 <b>어떤 효모로, 어떤 온도에서 발효했는지</b>에 따라 크게 <b>라거</b>와 <b>에일</b>로 나뉩니다. <b>필스너</b>는 라거의 한 종류, <b>IPA</b>와 <b>스타우트</b>는 에일의 한 종류예요.</p>
+            <div class="guide-grid">
+                <div class="guide-card" style="--cat:#e0b84a">
+                    <h3>🟡 라거 <small>Lager</small></h3>
+                    <p class="g-line"><b>라거인 이유</b> 하면발효 효모로 <b>차가운 온도(약 7~13℃)</b>에서 발효한 뒤, 낮은 온도에서 오래 <b>저장·숙성</b>시킨 맥주라서 라거다.</p>
+                    <p><b>이름의 뜻</b> 독일어 <i>lagern</i>(저장하다)에서 왔어요.</p>
+                    <p><b>맛</b> 깔끔하고 청량, 향이 순해서 목넘김이 가벼워요.</p>
+                    <p><b>대표</b> 하이네켄, 아사히, 카스, 테라</p>
+                    <button type="button" class="guide-go" onclick="selectCategory('lager')">라거 보러가기 →</button>
+                </div>
+                <div class="guide-card" style="--cat:#7cc4e8">
+                    <h3>🌾 필스너 <small>Pilsner</small></h3>
+                    <p class="g-line"><b>필스너인 이유</b> 라거 중에서도 <b>맑은 황금빛</b>에 <b>홉의 쌉싸름함이 또렷한</b> 체코 플젠 스타일이라서 필스너다.</p>
+                    <p><b>이름의 뜻</b> 체코 도시 <b>플젠(Plzeň, 독일어로 Pilsen)</b>의 '플젠식' 맥주라는 뜻. 1842년 이곳에서 필스너 우르켈이 처음 만들어졌어요.</p>
+                    <p><b>맛</b> 깨끗하고 쌉쌀, 청량감이 있어요.</p>
+                    <p><b>대표</b> 필스너 우르켈, 벡스, 칼스버그</p>
+                    <button type="button" class="guide-go" onclick="selectCategory('pilsner')">필스너 보러가기 →</button>
+                </div>
+                <div class="guide-card" style="--cat:#e8863f">
+                    <h3>🟠 에일 <small>Ale</small></h3>
+                    <p class="g-line"><b>에일인 이유</b> 상면발효 효모로 <b>따뜻한 온도(약 15~24℃)</b>에서 빠르게 발효해, 과일향·꽃향 같은 <b>향이 풍부</b>해서 에일이다.</p>
+                    <p><b>이름의 뜻</b> 고대 영어 <i>ealu</i>에서 온 말로, 영국의 전통 맥주를 가리켰어요.</p>
+                    <p><b>맛</b> 과일·꽃·스파이스 향과 묵직한 바디감이 특징이에요. 밀맥주(바이젠)도 에일 계열이에요.</p>
+                    <p><b>대표</b> 호가든, 듀벨, 제주 펠롱 에일</p>
+                    <button type="button" class="guide-go" onclick="selectCategory('ale')">에일 보러가기 →</button>
+                </div>
+                <div class="guide-card" style="--cat:#9bd84f">
+                    <h3>🌿 IPA <small>India Pale Ale</small></h3>
+                    <p class="g-line"><b>IPA인 이유</b> 에일 중에서도 <b>홉을 아주 많이 넣어</b> 향이 강하고 쌉쌀한 맛이 두드러져서 IPA다.</p>
+                    <p><b>이름의 뜻</b> <b>I</b>ndia <b>P</b>ale <b>A</b>le의 약자. 18세기 영국이 인도로 보내던 페일 에일에서 유래했다고 알려져 있고, 긴 항해 중에도 상하지 않게 홉을 많이 넣었다고 전해져요.</p>
+                    <p><b>맛</b> 시트러스·열대과일 향과 뚜렷한 쓴맛이 특징이에요.</p>
+                    <p><b>대표</b> 브루독 펑크 IPA, 구스 아일랜드 IPA</p>
+                    <button type="button" class="guide-go" onclick="selectCategory('ipa')">IPA 보러가기 →</button>
+                </div>
+                <div class="guide-card" style="--cat:#c9a27e">
+                    <h3>⚫ 스타우트 <small>Stout</small></h3>
+                    <p class="g-line"><b>스타우트인 이유</b> 에일 계열이면서 <b>아주 진하게 볶은 맥아</b>를 써서 검은색에 커피·초콜릿 향이 나는 <b>진하고 묵직한 흑맥주</b>라서 스타우트다.</p>
+                    <p><b>이름의 뜻</b> stout는 '튼튼한·강한'이라는 뜻. 18세기 영국에서 진하고 센 포터를 'stout porter'라 부르던 데서 나왔어요.</p>
+                    <p><b>맛</b> 구운 보리의 고소함, 커피·다크초콜릿 풍미.</p>
+                    <p><b>대표</b> 기네스, 맥파이 포터. <small>(이 도감의 스타우트는 포터·다크 라거 등 흑맥주 전체를 담았어요)</small></p>
+                    <button type="button" class="guide-go" onclick="selectCategory('stout')">스타우트 보러가기 →</button>
+                </div>
+                <div class="guide-card" style="--cat:#a78bfa">
+                    <h3>💎 프리미엄 <small>Premium / Limited</small></h3>
+                    <p class="g-line"><b>프리미엄인 이유</b> 배럴 에이징·고도수·극소량 생산·시즌 한정 등으로 <b>가격이 높고 구하기 어려운</b> 맥주들을 모았습니다.</p>
+                    <p><b>특징</b> 버번 카운티 스타우트, 웨스트블레테렌 12, 페이스트리 스타우트처럼 한 병에 수 만 원대이거나 연 1회만 나오는 제품이 많아요.</p>
+                    <p><b>어디서?</b> 성수동 탭룸(서울브루어리·어메이징브루잉), 신사동·이태원 보틀샵, 데일리샷 앱에서 재고를 확인하세요.</p>
+                    <p><b>대표</b> 구스 아일랜드 버번 카운티, 옴니폴로, 미켈러 긱 브렉퍼스트</p>
+                    <button type="button" class="guide-go" onclick="selectCategory('premium')">프리미엄 보러가기 →</button>
+                </div>
+            </div>
+        </details>
+
+        <nav class="cat-tabs" id="cat-tabs" aria-label="맥주 종류"></nav>
+        <div class="sub-tabs" style="margin-top:12px">
+            <nav class="top-tabs" id="continent-tabs" aria-label="지역 필터" style="display:contents">
+                <button class="top-tab-btn active" onclick="selectContinentTab('all', this)">All</button>
+                <button class="top-tab-btn" onclick="selectContinentTab('europe', this)">Europe</button>
+                <button class="top-tab-btn" onclick="selectContinentTab('asia', this)">Asia</button>
+                <button class="top-tab-btn" onclick="selectContinentTab('americas', this)">Americas</button>
+                <button class="top-tab-btn" onclick="selectContinentTab('africa', this)">Africa</button>
+            </nav>
+        </div>
+        <div class="sub-tabs" style="margin-top:10px; gap:8px;">
+            <button type="button" class="top-tab-btn" id="fav-only-btn" onclick="toggleFavOnly(this)">★ Favorites</button>
+            <select id="abv-filter" class="search-input" style="width:auto;max-width:170px;padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer" onchange="setAbvFilter(this.value)">
+                <option value="all">ABV · All</option>
+                <option value="low">Under 5%</option>
+                <option value="mid">5% – 7%</option>
+                <option value="high">Over 7%</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="today-pick" id="today-pick"></div>
+
+    <main id="continent-container" class="continent-wrapper"></main>
+
+    <!-- 맥주 클릭 시 열리는 사진 & 판매처 팝업(모달) -->
+    <div id="beer-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-beer-title">
+            <button class="modal-close-btn" type="button" aria-label="닫기" onclick="closeBeerModal()">×</button>
+            <div id="modal-photo-box" class="modal-photo-box" style="display:none"></div>
+            <div id="modal-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const continents = [
+            { id: "europe", name: "🇪🇺 유럽", subtitle: "아이리시 스타우트·체코/독일 라거·필스너·벨기에 에일·영국 IPA" },
+            { id: "asia", name: "🌏 아시아 (한국 시판 & 수제맥주 포함)", subtitle: "국내 편의점·주류앱 시판 맥주, 한국 수제맥주, 일본·중국 대표 맥주" },
+            { id: "americas", name: "🌎 아메리카", subtitle: "미국 크래프트 IPA·임페리얼 스타우트와 중남미 라거" },
+            { id: "africa", name: "🌍 아프리카", subtitle: "밀크·포린 엑스트라 스타우트, 다크 에일, 몰트 라거" }
+        ];
+
+        // 각 맥주 데이터 (image: 사진 URL 넣으면 바로 반영, stores: 주요 판매처 안내)
+        const beers = [
+            // ================= [유럽 - 13종] =================
+            {
+                id: "eu-1",
+                rank: 1,
+                name: "기네스 드래프트 (Guinness Draught)",
+                continent: "europe",
+                country: "🇮🇪 아일랜드",
+                style: "아이리시 드라이 스타우트",
+                abv: "4.2%",
+                price: "편의점 440ml 1캔 약 4,500원 (4캔 12,000원대)",
+                stores: "CU·GS25·세븐일레븐·이마트24 등 편의점, 대형마트, 주류 스마트오더(데일리샷 등), 아이리시·펍 생맥주",
+                image: "",
+                desc: "전 세계 흑맥주의 대명사. 구운 보리의 커피 풍미와 질소 거품의 부드러운 크리미함이 특징입니다.",
+                tasting: { bitterness: 4, sweetness: 2, body: 3, roast: 5 }
+            },
+            {
+                id: "eu-2",
+                rank: 2,
+                name: "코젤 다크 (Kozel Dark)",
+                continent: "europe",
+                country: "🇨🇿 체코",
+                style: "다크 라거",
+                abv: "3.8%",
+                price: "편의점 500ml 1캔 약 4,500원 (4캔 12,000원대)",
+                stores: "주요 편의점(4캔 행사), 이마트·홈플러스·롯데마트, 주류 스마트오더, 코젤 펍·일반 펍",
+                image: "",
+                desc: "카라멜 몰트의 은은한 단맛과 가벼운 목넘김으로 국내 편의점에서도 가장 대중적인 체코 흑맥주입니다.",
+                tasting: { bitterness: 2, sweetness: 4, body: 2, roast: 3 }
+            },
+            {
+                id: "eu-3",
+                rank: 3,
+                name: "에딩거 둔켈 (Erdinger Dunkel)",
+                continent: "europe",
+                country: "🇩🇪 독일",
+                style: "둔켈 바이젠 (흑밀맥주)",
+                abv: "5.3%",
+                price: "편의점·마트 500ml 1캔 약 4,500원대",
+                stores: "대형마트, 일부 편의점, 주류 스마트오더, 수입맥주 전문점",
+                image: "",
+                desc: "볶은 밀과 보리 맥아를 사용해 구수한 빵 향과 은은한 초콜릿·카라멜 풍미가 어우러진 독일 흑밀맥주입니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 3, roast: 3 }
+            },
+            {
+                id: "eu-4",
+                rank: 4,
+                name: "쾨스트리처 슈바르츠비어",
+                continent: "europe",
+                country: "🇩🇪 독일",
+                style: "슈바르츠비어 (흑라거)",
+                abv: "4.8%",
+                price: "마트·주류앱 330ml 병당 약 4,000~4,500원대",
+                stores: "대형마트, 주류 스마트오더(데일리샷 등), 보틀샵",
+                image: "",
+                desc: "독일 정통 흑라거로 짙은 검은빛에 비해 깔끔하며 다크 초콜릿과 구운 맥아의 여운이 남습니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "eu-5",
+                rank: 5,
+                name: "레페 브라운 (Leffe Brune)",
+                continent: "europe",
+                country: "🇧🇪 벨기에",
+                style: "벨지안 두벨 / 브라운 에일",
+                abv: "6.5%",
+                price: "대형마트·편의점 330ml/500ml 약 4,000~5,000원대",
+                stores: "대형마트, 일부 편의점, 주류 스마트오더, 수입맥주 펍",
+                image: "",
+                desc: "구운 카라멜과 건과일, 은은한 스파이스 향이 감도는 벨기에 수도원 스타일의 풍부한 다크 에일입니다.",
+                tasting: { bitterness: 2, sweetness: 4, body: 4, roast: 3 }
+            },
+            {
+                id: "eu-6",
+                rank: 6,
+                name: "브루독 제트 블랙 하트 (Jet Black Heart)",
+                continent: "europe",
+                country: "🇬🇧 영국 (스코틀랜드)",
+                style: "오트밀 밀크 스타우트",
+                abv: "4.7%",
+                price: "보틀샵·주류앱 330ml 캔/병 약 6,000~7,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 바틀앤탭 펍",
+                image: "",
+                desc: "귀리와 유당을 더해 벨벳처럼 부드러운 거품과 진한 에스프레소·다크초콜릿 풍미를 살린 영국 대표 크래프트 스타우트입니다.",
+                tasting: { bitterness: 3, sweetness: 4, body: 4, roast: 4 }
+            },
+            {
+                id: "eu-7",
+                rank: 7,
+                name: "영스 더블 초콜릿 스타우트",
+                continent: "europe",
+                country: "🇬🇧 영국",
+                style: "초콜릿 스타우트",
+                abv: "5.2%",
+                price: "보틀샵·주류앱 500ml 병/캔 약 7,000~8,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 와인앤모어 등 주류 전문매장",
+                image: "",
+                desc: "실제 다크 초콜릿과 초콜릿 몰트를 사용해 묵직하고 달콤쌉싸름한 코코아 향이 지배적인 영국 인기 흑맥주입니다.",
+                tasting: { bitterness: 3, sweetness: 4, body: 4, roast: 4 }
+            },
+            {
+                id: "eu-8",
+                rank: 8,
+                name: "미켈러 비어 긱 브렉퍼스트",
+                continent: "europe",
+                country: "🇩🇰 덴마크",
+                style: "오트밀 커피 스타우트",
+                abv: "7.5%",
+                price: "주류앱·보틀샵 330ml 기준 약 8,500~11,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 미켈러 바·탭하우스",
+                image: "",
+                desc: "고급 스페셜티 커피 원두와 귀리를 사용해 진한 핸드드립 커피 아로마와 부드러운 바디를 자랑하는 북유럽 명작입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 5 }
+            },
+            {
+                id: "eu-9",
+                rank: 9,
+                name: "옴니폴로 노아 피칸 머드 케이크",
+                continent: "europe",
+                country: "🇸🇪 스웨덴",
+                style: "임페리얼 페이스트리 스타우트",
+                abv: "11.0%",
+                price: "주류앱·보틀샵 330ml 기준 약 13,000~17,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵(입고 시즌별 상이)",
+                image: "",
+                desc: "피칸 파이와 초콜릿 머드 케이크를 마시는 듯한 꾸덕한 질감과 강렬한 디저트 풍미로 보틀샵 마니아층이 두텁습니다.",
+                tasting: { bitterness: 3, sweetness: 5, body: 5, roast: 4 }
+            },
+            {
+                id: "eu-10",
+                rank: 10,
+                name: "포히알라 외오 (Põhjala Öö)",
+                continent: "europe",
+                country: "🇪🇪 에스토니아",
+                style: "임페리얼 발틱 포터",
+                abv: "10.5%",
+                price: "주류앱·보틀샵 330ml 기준 약 11,000~14,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "에스토니아어로 '밤'을 뜻하며, 건자두·다크초콜릿·구운 맥아의 깊고 농밀한 복합미가 뛰어난 발틱 포터입니다.",
+                tasting: { bitterness: 4, sweetness: 4, body: 5, roast: 5 }
+            },
+            {
+                id: "eu-11",
+                rank: 11,
+                name: "머피스 아이리시 스타우트",
+                continent: "europe",
+                country: "🇮🇪 아일랜드",
+                style: "아이리시 스타우트",
+                abv: "4.0%",
+                price: "대형마트·편의점 500ml 1캔 약 4,000~4,500원대",
+                stores: "대형마트, 일부 편의점, 주류 스마트오더",
+                image: "",
+                desc: "기네스보다 쓴맛이 순하고 토피·카라멜 뉘앙스가 부드럽게 감도는 아일랜드 코크 지역 대표 흑맥주입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "eu-12",
+                rank: 12,
+                name: "사무엘 스미스 오트밀 스타우트",
+                continent: "europe",
+                country: "🇬🇧 영국",
+                style: "오트밀 스타우트",
+                abv: "5.0%",
+                price: "보틀샵 355ml 병당 약 7,500~9,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 주류 전문매장",
+                image: "",
+                desc: "귀리를 사용해 벨벳처럼 매끄러운 질감과 견과류·다크초콜릿 풍미를 살린 영국 클래식 스타우트입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "eu-13",
+                rank: 13,
+                name: "풀러스 블랙 카바레 (Fuller's Black Cab)",
+                continent: "europe",
+                country: "🇬🇧 영국",
+                style: "리치 스타우트",
+                abv: "4.5%",
+                price: "보틀샵·주류앱 500ml 병당 약 7,000~8,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 보틀샵, 수입맥주 전문매장",
+                image: "",
+                desc: "런던 블랙캡 택시에서 이름을 딴 영국 전통 스타우트로 구운 보리, 건과일, 다크초콜릿의 단정한 균형이 돋보입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+
+            // ================= [아시아 - 한국 시판/수제 포함 17종] =================
+            {
+                id: "as-1",
+                rank: 1,
+                name: "하이트진로 스타우트 (Stout)",
+                continent: "asia",
+                country: "🇰🇷 한국 (시판 라거/흑맥주)",
+                style: "다크 라거",
+                abv: "5.0%",
+                price: "편의점·마트 500ml 1캔 약 2,800~3,500원대",
+                stores: "전국 편의점, 대형마트, 슈퍼마켓, 일반 음식점·주점",
+                image: "",
+                desc: "1991년 출시된 대한민국 정통 시판 흑맥주. 독일산 흑맥아를 사용해 고소하고 깔끔한 라거 스타일로 즐길 수 있습니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 2, roast: 3 }
+            },
+            {
+                id: "as-2",
+                rank: 2,
+                name: "맥파이 포터 (Magpie Porter)",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "로버스트 포터",
+                abv: "5.6%",
+                price: "주류앱·보틀샵 500ml 기준 약 5,700~7,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 맥파이 탭룸·수제맥주 펍",
+                image: "",
+                desc: "한국 수제맥주 1세대 맥파이 브루잉의 대표작. 다크 초콜릿과 에스프레소의 묵직한 풍미와 깔끔한 피니시가 일품입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "as-3",
+                rank: 3,
+                name: "핸드앤몰트 모카 스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "모카 스타우트",
+                abv: "5.0%",
+                price: "주류앱·보틀샵 기준 캔/잔당 약 6,500~8,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 수제맥주 탭하우스",
+                image: "",
+                desc: "카카오 닙스와 원두를 더해 진한 모카 커피 향과 초콜릿의 부드러운 균형을 살린 국내 대표 크래프트 스타우트입니다.",
+                tasting: { bitterness: 3, sweetness: 4, body: 4, roast: 5 }
+            },
+            {
+                id: "as-4",
+                rank: 4,
+                name: "제주맥주 거뭇 (Jeju Geomoot)",
+                continent: "asia",
+                country: "🇰🇷 한국 (시판 수제맥주)",
+                style: "다크 에일 / 스타우트",
+                abv: "5.5%",
+                price: "편의점·마트 500ml 1캔 약 4,500원 (4캔 12,000원대)",
+                stores: "편의점(4캔 행사), 대형마트, 주류 스마트오더, 제주맥주 양조장·팝업",
+                image: "",
+                desc: "제주 현무암에서 영감을 받은 국내 시판 흑맥주로, 로스팅 맥아의 고소함과 부담 없는 데일리 밸런스를 갖췄습니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "as-5",
+                rank: 5,
+                name: "어메이징 브루잉 쇼킹 스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "크래프트 임페리얼 스타우트",
+                abv: "6.5%~7.5%",
+                price: "주류앱·보틀샵 기준 약 7,000~9,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 어메이징 브루잉 탭룸, 크래프트 보틀샵",
+                image: "",
+                desc: "성수동 대표 크래프트 양조장 어메이징 브루잉의 시그니처 흑맥주로 진한 로스팅 몰트와 묵직한 바디감이 돋보입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 5 }
+            },
+            {
+                id: "as-6",
+                rank: 6,
+                name: "플레이그라운드 마담 휘트니 스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "오트밀 스타우트",
+                abv: "5.5%",
+                price: "주류앱·보틀샵 500ml 기준 약 6,500~8,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 수제맥주 펍",
+                image: "",
+                desc: "일산 플레이그라운드 브루어리의 스타우트로 귀리의 부드러운 질감과 볶은 보리·다크초콜릿 아로마가 조화롭습니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "as-7",
+                rank: 7,
+                name: "와일드웨이브 레일로드 포터",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "크래프트 포터",
+                abv: "5.5%",
+                price: "주류앱·보틀샵 기준 약 6,500~8,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 와일드웨이브 탭룸, 크래프트 보틀샵",
+                image: "",
+                desc: "부산 와일드웨이브 브루잉에서 선보이는 포터로 견과류와 코코아, 볶은 보리의 구수한 밸런스가 뛰어납니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "as-8",
+                rank: 8,
+                name: "끽비어 느린 포터 (Kkik Beer Slow Porter)",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "크래프트 포터",
+                abv: "5.2%",
+                price: "주류앱·보틀샵 500ml 기준 약 6,500~8,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 끽비어 탭룸",
+                image: "",
+                desc: "고양시 크래프트 양조장 끽비어의 대표 흑맥주로 차분하게 로스팅된 맥아의 고소함과 은은한 초콜릿 여운이 매력적입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "as-9",
+                rank: 9,
+                name: "갈매기 브루잉 에스프레소 스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "커피 스타우트",
+                abv: "5.8%",
+                price: "탭하우스·보틀샵 기준 약 6,500~8,500원대",
+                stores: "갈매기 브루잉 탭하우스(부산), 크래프트 보틀샵, 일부 주류 스마트오더",
+                image: "",
+                desc: "부산 갈매기 브루잉의 인기 흑맥주로 스페셜티 원두의 산뜻한 로스팅 향과 크리미한 목넘김이 특징입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 5 }
+            },
+            {
+                id: "as-10",
+                rank: 10,
+                name: "세븐브로이 흑맥주 / 다크 에일 라인",
+                continent: "asia",
+                country: "🇰🇷 한국 (시판 수제맥주)",
+                style: "다크 에일 · 스타우트",
+                abv: "5.0%",
+                price: "편의점·마트 500ml 1캔 약 4,000~4,500원대",
+                stores: "편의점, 대형마트, 주류 스마트오더",
+                image: "",
+                desc: "국내 1세대 크래프트 기업 세븐브로이가 선보이는 시판 다크 맥주 라인업으로 부드러운 탄산과 구운 맥아 향이 특징입니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 3, roast: 3 }
+            },
+            {
+                id: "as-11",
+                rank: 11,
+                name: "대천브루어리 오천포터 & 남포오석스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (로컬 수제맥주)",
+                style: "포터 / 스타우트",
+                abv: "5.2%~5.8%",
+                price: "주류앱·로컬샵 기준 약 6,000~7,500원대",
+                stores: "주류 스마트오더, 대천브루어리 탭룸·로컬 보틀샵",
+                image: "",
+                desc: "충남 보령 오석(검은 돌)에서 착안한 로컬 수제 흑맥주로 코코아·카라멜 중심의 포터와 진한 로스팅 스타우트를 함께 선보입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "as-12",
+                rank: 12,
+                name: "브루원 임페리얼 스타우트",
+                continent: "asia",
+                country: "🇰🇷 한국 (수제맥주)",
+                style: "임페리얼 스타우트",
+                abv: "8.5%~9.5%",
+                price: "보틀샵·주류앱 기준 약 8,500~11,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 수제맥주 펍",
+                image: "",
+                desc: "국내 크래프트 양조장 브루원의 고도수 흑맥주로 진한 다크 초콜릿과 에스프레소, 묵직한 바디감을 추구합니다.",
+                tasting: { bitterness: 4, sweetness: 4, body: 5, roast: 5 }
+            },
+            {
+                id: "as-13",
+                rank: 13,
+                name: "아사히 슈퍼드라이 드라이 블랙",
+                continent: "asia",
+                country: "🇯🇵 일본",
+                style: "다크 라거",
+                abv: "5.5%",
+                price: "편의점·마트 500ml 1캔 약 4,500원대",
+                stores: "편의점, 대형마트, 주류 스마트오더, 이자카야·일식당",
+                image: "",
+                desc: "로스팅 맥아의 깊은 향과 아사히 특유의 깔끔하고 드라이한 목넘김이 결합된 일본 대표 시판 흑맥주입니다.",
+                tasting: { bitterness: 3, sweetness: 2, body: 3, roast: 4 }
+            },
+            {
+                id: "as-14",
+                rank: 14,
+                name: "코너스 스타우트 포터 (Connor's Stout Porter)",
+                continent: "asia",
+                country: "🇲🇾 말레이시아 / 싱가포르",
+                style: "스타우트 포터",
+                abv: "5.0%",
+                price: "국내 수입 생맥주·펍 기준 잔당 약 7,000~9,000원대",
+                stores: "국내 제휴 펍·생맥주 매장, 일부 보틀샵/스마트오더",
+                image: "",
+                desc: "동남아 시장을 대표하는 프리미엄 질소 흑맥주로 크리미한 거품과 로스팅 커피·초콜릿의 조화가 뛰어납니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 4 }
+            },
+            {
+                id: "as-15",
+                rank: 15,
+                name: "칭따오 스타우트 (Tsingtao Stout)",
+                continent: "asia",
+                country: "🇨🇳 중국",
+                style: "스타우트",
+                abv: "7.5%",
+                price: "수입주류점·마트 기준 약 4,500~6,000원대",
+                stores: "대형마트, 주류 스마트오더, 중식당·수입주류 코너",
+                image: "",
+                desc: "진한 에스프레소와 카라멜 풍미가 도드라지며 7.5%의 높은 도수와 묵직한 바디감을 보여주는 정통 흑맥주입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 5 }
+            },
+            {
+                id: "as-16",
+                rank: 16,
+                name: "기린 이치방 시보리 쿠로나마 (흑생)",
+                continent: "asia",
+                country: "🇯🇵 일본",
+                style: "다크 라거",
+                abv: "5.0%",
+                price: "수입주류점·마트 기준 약 4,500~5,500원대",
+                stores: "대형마트, 주류 스마트오더, 수입맥주 전문매장",
+                image: "",
+                desc: "첫 번째 맥즙만을 추출하는 이치방 시보리 공법에 다크 몰트를 더해 잡미 없이 부드러운 감칠맛을 낸 흑맥주입니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 3, roast: 3 }
+            },
+            {
+                id: "as-17",
+                rank: 17,
+                name: "히타치노 네스트 에스프레소 스타우트",
+                continent: "asia",
+                country: "🇯🇵 일본 (수제맥주)",
+                style: "임페리얼 커피 스타우트",
+                abv: "7.5%",
+                price: "주류앱·보틀샵 330ml 병당 약 7,500~9,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 이자카야·바틀샵",
+                image: "",
+                desc: "볶은 원두 에스프레소를 첨가해 깊고 향긋한 커피 아로마와 묵직한 바디를 살린 부엉이 맥주 대표 흑맥주입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 5 }
+            },
+
+            // ================= [아메리카 - 11종] =================
+            {
+                id: "am-1",
+                rank: 1,
+                name: "파운더스 포터 (Founders Porter)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "아메리칸 포터",
+                abv: "6.5%",
+                price: "주류앱·보틀샵 355ml 1병 약 6,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "미국 크래프트 포터의 교과서로 불리며 다크 초콜릿·커피 풍미와 벨벳 같은 질감이 뛰어납니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "am-2",
+                rank: 2,
+                name: "발라스트 포인트 빅토리 앳 씨 (Victory at Sea)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "임페리얼 커피 바닐라 포터",
+                abv: "10.0%",
+                price: "주류앱·보틀샵 355ml 기준 약 8,500~10,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "로스팅 원두 커피와 달콤한 바닐라 빈을 더해 국내 주류앱에서도 스타우트·포터 검색 시 손꼽히는 인기작입니다.",
+                tasting: { bitterness: 3, sweetness: 4, body: 5, roast: 4 }
+            },
+            {
+                id: "am-3",
+                rank: 3,
+                name: "구스 아일랜드 버번 카운티 스타우트",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "배럴 에이지드 임페리얼 스타우트",
+                abv: "14.0%",
+                price: "주류앱·보틀샵 500ml 병당 약 35,000~45,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 한정판 보틀샵·구스아일랜드 펍",
+                image: "",
+                desc: "버번 위스키 오크통 숙성으로 바닐라, 다크 초콜릿, 오크 향이 폭발하는 미국 대표 프리미엄 흑맥주입니다.",
+                tasting: { bitterness: 4, sweetness: 4, body: 5, roast: 5 }
+            },
+            {
+                id: "am-4",
+                rank: 4,
+                name: "파운더스 브렉퍼스트 스타우트",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "더블 초콜릿 커피 오트밀 스타우트",
+                abv: "8.3%",
+                price: "주류앱·보틀샵 355ml 병당 약 8,000~9,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "두 종류의 원두와 초콜릿, 귀리를 아낌없이 넣어 진한 모카 라떼처럼 풍성한 바디감을 보여주는 스테디셀러입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 5, roast: 5 }
+            },
+            {
+                id: "am-5",
+                rank: 5,
+                name: "레프트 핸드 밀크 스타우트",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "밀크 스타우트",
+                abv: "6.0%",
+                price: "주류앱·보틀샵 355ml 병당 약 6,500~8,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "유당(락토스)을 더해 모카 커피와 밀크 초콜릿처럼 달콤하고 부드러운 질감을 구현한 흑맥주입니다.",
+                tasting: { bitterness: 2, sweetness: 4, body: 4, roast: 4 }
+            },
+            {
+                id: "am-6",
+                rank: 6,
+                name: "오스카 블루스 텐 피디 (Ten FIDY)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "임페리얼 스타우트",
+                abv: "10.5%",
+                price: "주류앱·보틀샵 355ml 캔당 약 9,500~12,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "엔진 오일처럼 짙고 점도 높은 바디감에 에스프레소, 다크 초콜릿, 카라멜이 응축된 캔 임페리얼 스타우트의 강자입니다.",
+                tasting: { bitterness: 4, sweetness: 4, body: 5, roast: 5 }
+            },
+            {
+                id: "am-7",
+                rank: 7,
+                name: "시에라 네바다 나르왈 (Narwhal)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "임페리얼 스타우트",
+                abv: "10.2%",
+                price: "주류앱·보틀샵 355ml 병당 약 8,500~10,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "강렬한 다크 몰트 로스팅과 다크 코코아, 에스프레소 향이 묵직하게 뻗어나가는 미국 클래식 임페리얼 스타우트입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 5, roast: 5 }
+            },
+            {
+                id: "am-8",
+                rank: 8,
+                name: "로그 셰익스피어 오트밀 스타우트",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "오트밀 스타우트",
+                abv: "5.7%",
+                price: "보틀샵·주류앱 355ml 기준 약 7,000~8,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "크리미한 거품과 구운 맥아의 고소한 풍미, 초콜릿 여운이 균형 잡힌 오리건주 로그 양조장의 대표 스타우트입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "am-9",
+                rank: 9,
+                name: "벨스 칼라마주 스타우트 (Bell's Kalamazoo)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "아메리칸 스타우트",
+                abv: "6.0%",
+                price: "보틀샵·주류앱 355ml 기준 약 7,500~9,000원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "다크 초콜릿과 볶은 커피 향에 미국 홉의 산뜻한 쓴맛과 은은한 감초 뉘앙스가 조화를 이루는 정통 스타우트입니다.",
+                tasting: { bitterness: 4, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "am-10",
+                rank: 10,
+                name: "모던 타임즈 블랙 하우스 (Black House)",
+                continent: "americas",
+                country: "🇺🇸 미국",
+                style: "오트밀 커피 스타우트",
+                abv: "5.8%",
+                price: "보틀샵·주류앱 473ml 캔당 약 8,500~10,500원대",
+                stores: "주류 스마트오더(데일리샷 등), 크래프트 보틀샵",
+                image: "",
+                desc: "자체 로스팅한 스페셜티 커피 원두를 블렌딩해 5%대의 가벼운 도수에도 진한 아이스 아메리카노 같은 풍미를 냅니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 3, roast: 5 }
+            },
+            {
+                id: "am-11",
+                rank: 11,
+                name: "네그라 모델로 (Negra Modelo)",
+                continent: "americas",
+                country: "🇲🇽 멕시코",
+                style: "뮌헨 둔켈 스타일 다크 라거",
+                abv: "5.4%",
+                price: "수입마트·타코 전문점 기준 약 4,500~6,500원대",
+                stores: "수입주류 코너·대형마트, 멕시칸/타코 레스토랑, 주류 스마트오더",
+                image: "",
+                desc: "구운 맥아의 고소한 단맛과 깔끔한 청량감이 조화로워 육류·멕시칸 요리와 잘 어울리는 다크 라거입니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 3, roast: 3 }
+            },
+
+            // ================= [아프리카 - 4종] =================
+            {
+                id: "af-1",
+                rank: 1,
+                name: "캐슬 밀크 스타우트 (Castle Milk Stout)",
+                continent: "africa",
+                country: "🇿🇦 남아프리카공화국",
+                style: "밀크 스타우트",
+                abv: "6.0%",
+                price: "해외 현지 기준 약 2,000~3,000원대 (국내 수입 희소)",
+                stores: "남아공 현지 마트·바틀샵(국내 일반 유통 희소)",
+                image: "",
+                desc: "남아공을 대표하는 흑맥주로 진한 카라멜과 구운 몰트의 달콤쌉싸름한 균형이 뛰어납니다.",
+                tasting: { bitterness: 3, sweetness: 4, body: 4, roast: 4 }
+            },
+            {
+                id: "af-2",
+                rank: 2,
+                name: "기네스 포린 엑스트라 스타우트",
+                continent: "africa",
+                country: "🇳🇬 나이지리아",
+                style: "포린 엑스트라 스타우트",
+                abv: "7.5%",
+                price: "해외 현지·수입보틀 기준 약 4,000~7,000원대",
+                stores: "서아프리카 현지 유통 및 특수 수입 보틀샵(제품 판본 확인 필요)",
+                image: "",
+                desc: "서아프리카 현지에서 큰 인기를 끄는 고도수 스타우트로 강렬한 로스팅과 묵직한 풍미가 특징입니다.",
+                tasting: { bitterness: 4, sweetness: 2, body: 4, roast: 5 }
+            },
+            {
+                id: "af-3",
+                rank: 3,
+                name: "길로이 다크 (Gilroy Dark)",
+                continent: "africa",
+                country: "🇿🇦 남아프리카공화국 (수제)",
+                style: "크래프트 다크 에일",
+                abv: "5.5%",
+                price: "남아공 로컬 브루펍·보틀 기준 약 4,000~6,000원대",
+                stores: "남아공 로컬 브루펍 및 현지 보틀샵",
+                image: "",
+                desc: "남아공 크래프트 브루어리 길로이의 대표 흑맥주로 루비빛 짙은 색감과 구운 맥아·초콜릿의 깊은 여운이 특징입니다.",
+                tasting: { bitterness: 3, sweetness: 3, body: 4, roast: 4 }
+            },
+            {
+                id: "af-4",
+                rank: 4,
+                name: "터스커 몰트 (Tusker Malt)",
+                continent: "africa",
+                country: "🇰🇪 케냐",
+                style: "프리미엄 다크 몰트 라거",
+                abv: "5.0%",
+                price: "해외 현지 기준 약 2,500~3,500원대",
+                stores: "케냐·동아프리카 현지 마트 및 주류점",
+                image: "",
+                desc: "동아프리카 대표 맥주 브랜드 터스커의 다크 몰트 라인업으로 고소한 볶음 맥아 향과 묵직한 몰트 단맛이 특징입니다.",
+                tasting: { bitterness: 2, sweetness: 3, body: 3, roast: 3 }
+            }
+        ];
+
+
+        // ================= 카테고리 (라거 · 필스너 · 에일 · IPA · 스타우트) =================
+        const CATEGORIES = [
+            { id: "lager",   name: "Lager",   emoji: "", color: "#e0b84a", hint: "Clean" },
+            { id: "pilsner", name: "Pilsner", emoji: "", color: "#7cc4e8", hint: "Crisp" },
+            { id: "ale",     name: "Ale",     emoji: "", color: "#e8863f", hint: "Fruity" },
+            { id: "ipa",     name: "IPA",     emoji: "", color: "#9bd84f", hint: "Hoppy" },
+            { id: "stout",   name: "Stout",   emoji: "", color: "#c9a27e", hint: "Dark" },
+            { id: "premium", name: "Premium", emoji: "", color: "#a78bfa", hint: "Limited" }
+        ];
+        // 기존 45종(흑맥주·포터·다크 라거·다크 에일)은 모두 스타우트(흑맥주) 카테고리
+        beers.forEach(b => { b.category = "stout"; });
+        // 고가·한정판 맥주는 프리미엄으로 재분류
+        ["eu-8","eu-9","eu-10","am-3","am-4","am-6","am-7"].forEach(id => {
+            const b = beers.find(x => x.id === id);
+            if (b) {
+                b.category = "premium";
+                b.tip = "한정·고가 제품이라 일반 편의점엔 거의 없습니다. 데일리샷 앱·와인앤모어·크래프트 보틀샵에서 시즌 입고를 확인하세요.";
+                b.draft = "대부분 병 전용. 일부 고급 탭룸에서 시즌 한정 생맥주";
+            }
+        });
+        // 기네스 등 생맥주 전문점 안내
+        const guinness = beers.find(b => b.id === "eu-1");
+        if (guinness) {
+            guinness.tip = "이태원 ‘베이비기네스’, 한남 ‘기네스72’ 등에서 질소 생맥주를 제대로 맛볼 수 있습니다. 캔은 편의점 어디서나 판매.";
+            guinness.draft = "이태원 베이비기네스, 한남 기네스72 등에서 생맥주 가능";
+        }
+        const kozel = beers.find(b => b.id === "eu-2");
+        if (kozel) {
+            kozel.tip = "편의점 4캔 행사로 쉽게 구매. 생맥주는 일부 체코 스타일 펍·호프집에서 취급합니다.";
+            kozel.draft = "일부 호프·체코 펍에서 생맥주 가능";
+        }
+
+        // 새로 추가한 맥주 (가격은 시세가 자주 바뀌어 직접 확인하도록 안내)
+        const PRICE_CHECK = "시세 변동 · 주류앱/마트 가격 확인 필요";
+        const STORES_MART = "편의점, 대형마트, 주류 스마트오더(데일리샷 등), 수입맥주 전문점";
+        const STORES_CRAFT = "주류 스마트오더(데일리샷 등), 크래프트 보틀샵, 수입맥주 펍";
+        const addBeers = [
+            { id:"lg-1", cat:"lager", cont:"europe", country:"🇳🇱 네덜란드", name:"하이네켄 (Heineken)", style:"페일 라거", abv:"5.0%", stores:STORES_MART, desc:"전 세계 어디서나 만날 수 있는 대표 라거. 가벼운 쌉싸름함과 깔끔한 끝맛이 특징입니다.", t:[2,2,2,1] },
+            { id:"lg-2", cat:"lager", cont:"europe", country:"🇨🇿 체코", name:"버드와이저 부드바르 (Budweiser Budvar)", style:"체코 프리미엄 라거", abv:"5.0%", stores:STORES_MART, desc:"체코 부데요비체에서 만드는 정통 라거로 고소한 몰트와 은은한 홉 쓴맛이 균형을 이룹니다.", t:[3,2,3,1] },
+            { id:"lg-3", cat:"lager", cont:"europe", country:"🇮🇪 아일랜드", name:"홉하우스 13 라거 (Hop House 13)", style:"페일 라거", abv:"5.0%", stores:STORES_MART, desc:"기네스 양조장에서 만든 라거로 캐러멜·토스트 향에 시트러스 홉 느낌이 더해집니다.", t:[3,2,3,1] },
+            { id:"lg-4", cat:"lager", cont:"europe", country:"🇮🇹 이탈리아", name:"모레티 (Birra Moretti)", style:"페일 라거", abv:"4.6%", stores:STORES_MART, desc:"가볍고 산뜻하며 은은한 몰트 단맛이 있어 피자·파스타와 잘 어울리는 이탈리아 라거입니다.", t:[2,2,2,1] },
+            { id:"lg-5", cat:"lager", cont:"europe", country:"🇮🇹 이탈리아", name:"페로니 나스트로 아주로 (Peroni Nastro Azzurro)", style:"이탈리안 프리미엄 라거", abv:"5.1%", stores:STORES_MART, desc:"깨끗하고 청량한 맛과 은은한 홉 향이 특징인 이탈리아 대표 라거입니다.", t:[2,2,2,1] },
+            { id:"lg-6", cat:"lager", cont:"europe", country:"🇪🇸 스페인", name:"에스트렐라 담 (Estrella Damm)", style:"페일 라거", abv:"4.6%", stores:STORES_MART, desc:"바르셀로나의 대표 맥주로 가볍고 깔끔한 몰트 풍미가 특징입니다.", t:[2,2,2,1] },
+            { id:"lg-7", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"아사히 슈퍼드라이", style:"드라이 라거", abv:"5.0%", stores:STORES_MART+", 이자카야", desc:"단맛을 줄인 드라이한 맛과 날카로운 청량감이 특징인 일본 대표 라거입니다.", t:[2,1,2,1] },
+            { id:"lg-8", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"삿포로 프리미엄 (블랙라벨)", style:"페일 라거", abv:"4.9%~5.0%", stores:STORES_MART+", 이자카야, 성수 삿포로 프리미엄 비어스탠드", desc:"깔끔한 쓴맛과 은은한 몰트 감칠맛이 균형을 이루는 일본의 장수 라거입니다. 성수동에 전용 생맥주 스탠드가 있습니다.", t:[3,2,2,1] },
+            { id:"lg-jp1", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"기린 이치방 시보리 (Kirin Ichiban)", style:"페일 라거", abv:"5.0%", stores:STORES_MART+", 이자카야", desc:"첫 번째 맥즙만 사용하는 이치방 시보리 공법으로 잡미 없이 깔끔하고 부드러운 감칠맛이 특징입니다.", t:[2,2,2,1] },
+            { id:"lg-jp2", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"에비스 (Yebisu)", style:"프리미엄 라거", abv:"5.0%", stores:STORES_MART+", 프리미엄 주류코너, 일부 이자카야", desc:"삿포로 계열의 프리미엄 라거. 독일식 몰트 풍미가 깊고 깔끔한 끝맛이 특징입니다.", t:[2,3,3,1] },
+            { id:"lg-jp3", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"산토리 더 프리미엄 몰츠", style:"프리미엄 라거", abv:"5.5%", stores:STORES_MART+", 프리미엄 주류코너", desc:"산토리의 프리미엄 라인. 깊은 몰트 맛과 부드러운 바디로 일본 내에서 고급 라거로 통합니다.", t:[2,3,3,1] },
+            { id:"lg-jp4", cat:"lager", cont:"asia", country:"🇯🇵 일본 (오키나와)", name:"오리온 더 드래프트 (Orion)", style:"페일 라거", abv:"5.0%", stores:STORES_MART+", 오키나와 음식점·일부 이자카야", desc:"오키나와 대표 맥주. 가볍고 청량하며 살짝 단맛이 있어 더운 날씨에 잘 어울립니다.", t:[2,2,2,1] },
+            { id:"lg-jp5", cat:"lager", cont:"asia", country:"🇯🇵 일본", name:"아사히 드라이 블랙", style:"다크 라거", abv:"5.5%", stores:STORES_MART+", 이자카야", desc:"로스팅 맥아의 깊은 향과 아사히 특유의 드라이한 목넘김이 결합된 일본 시판 흑맥주입니다.", t:[3,2,3,4] },
+            { id:"lg-9", cat:"lager", cont:"asia", country:"🇰🇷 한국 (시판)", name:"테라 (Terra)", style:"라거", abv:"4.6%", stores:"전국 편의점, 대형마트, 일반 음식점·주점", desc:"청정 라거를 내세운 하이트진로 맥주로 깔끔하고 청량한 목넘김이 특징입니다.", t:[2,2,2,1] },
+            { id:"lg-10", cat:"lager", cont:"asia", country:"🇰🇷 한국 (시판)", name:"카스 프레시 (Cass Fresh)", style:"라거", abv:"4.5%", stores:"전국 편의점, 대형마트, 일반 음식점·주점", desc:"국내에서 가장 대중적인 라거 중 하나로 가볍고 시원한 맛이 특징입니다.", t:[2,2,1,1] },
+            { id:"lg-11", cat:"lager", cont:"asia", country:"🇸🇬 싱가포르", name:"타이거 맥주 (Tiger Beer)", style:"페일 라거", abv:"5.0%", stores:STORES_MART+", 동남아 음식점", desc:"열대 기후에서 사랑받는 청량한 라거로 가벼운 몰트 단맛과 깔끔한 끝맛이 있습니다.", t:[2,2,2,1] },
+            { id:"lg-12", cat:"lager", cont:"asia", country:"🇹🇭 태국", name:"싱하 (Singha)", style:"페일 라거", abv:"5.0%", stores:STORES_MART+", 태국 음식점", desc:"태국 대표 라거로 묵직한 몰트 맛과 쌉쌀함이 있어 향이 강한 음식과 잘 어울립니다.", t:[3,2,3,1] },
+            { id:"lg-13", cat:"lager", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"어메이징 브루잉 서울숲 수제라거", style:"수제 라거", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"성수동 어메이징 브루잉컴퍼니의 라거로 부담 없이 마시는 크래프트 라거입니다.", t:[2,2,2,1] },
+            { id:"lg-14", cat:"lager", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"인천맥주 개항로 라거", style:"수제 라거", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"인천 지역 양조장의 라거로 가볍고 깔끔한 로컬 크래프트 맥주입니다.", t:[2,2,2,1] },
+            { id:"lg-15", cat:"lager", cont:"americas", country:"🇲🇽 멕시코", name:"코로나 엑스트라 (Corona Extra)", style:"페일 라거", abv:"4.5%", stores:STORES_MART+", 멕시칸 레스토랑", desc:"가볍고 산뜻한 맛으로 라임 한 조각과 함께 즐기는 멕시코 대표 라거입니다.", t:[1,2,1,1] },
+            { id:"lg-16", cat:"lager", cont:"americas", country:"🇺🇸 미국", name:"버드와이저 (Budweiser)", style:"아메리칸 라거", abv:"5.0%", stores:STORES_MART, desc:"쌀을 섞어 만든 깔끔하고 가벼운 미국 대표 라거로 쌉쌀함이 약해 누구나 마시기 쉽습니다.", t:[1,2,1,1] },
+            { id:"lg-17", cat:"lager", cont:"americas", country:"🇺🇸 미국", name:"사무엘 아담스 보스턴 라거", style:"비엔나 스타일 라거", abv:"4.9%", stores:STORES_CRAFT, desc:"캐러멜 몰트의 단맛과 고귀한 홉의 쌉쌀함이 조화로운 미국 크래프트 라거의 대표작입니다.", t:[3,3,3,2] },
+            { id:"lg-18", cat:"lager", cont:"africa", country:"🇿🇦 남아프리카공화국", name:"캐슬 라거 (Castle Lager)", style:"페일 라거", abv:"5.0%", stores:"남아공 현지 마트·바틀샵(국내 일반 유통 희소)", desc:"남아공을 대표하는 라거로 깔끔하고 가벼운 몰트 맛이 특징입니다.", t:[2,2,2,1] },
+            { id:"lg-19", cat:"lager", cont:"africa", country:"🇰🇪 케냐", name:"터스커 라거 (Tusker Lager)", style:"페일 라거", abv:"4.2%", stores:"케냐·동아프리카 현지 마트 및 주류점(국내 유통 희소)", desc:"동아프리카 대표 맥주 브랜드 터스커의 기본 라거로 가볍고 시원한 맛입니다.", t:[2,2,2,1] },
+            { id:"pl-1", cat:"pilsner", cont:"europe", country:"🇨🇿 체코", name:"필스너 우르켈 (Pilsner Urquell)", style:"체코 필스너", abv:"4.4%", stores:STORES_MART, desc:"1842년 필젠에서 탄생한 세계 최초의 필스너. 사츠 홉의 은은한 쌉싸름함과 고소한 몰트가 균형을 이룹니다.", t:[3,2,2,1] },
+            { id:"pl-2", cat:"pilsner", cont:"europe", country:"🇩🇪 독일", name:"비트부르거 프리미엄 필스 (Bitburger)", style:"저먼 필스너", abv:"4.8%", stores:STORES_MART, desc:"깔끔하고 드라이한 쓴맛이 또렷한 독일 대표 필스너입니다.", t:[3,1,2,1] },
+            { id:"pl-3", cat:"pilsner", cont:"europe", country:"🇩🇪 독일", name:"크롬바허 필스 (Krombacher Pils)", style:"저먼 필스너", abv:"4.8%", stores:STORES_MART, desc:"부드러운 쓴맛과 깨끗한 끝맛으로 독일에서 꾸준히 사랑받는 필스너입니다.", t:[3,2,2,1] },
+            { id:"pl-4", cat:"pilsner", cont:"europe", country:"🇩🇪 독일", name:"벡스 (Beck's)", style:"저먼 필스너", abv:"4.8%", stores:STORES_MART, desc:"브레멘에서 시작된 대표 독일 맥주. 가볍게 쌉쌀하고 청량한 목넘김이 특징입니다.", t:[3,1,2,1] },
+            { id:"pl-5", cat:"pilsner", cont:"europe", country:"🇩🇪 독일", name:"라데베르거 필스너 (Radeberger)", style:"저먼 필스너", abv:"4.8%", stores:STORES_MART, desc:"드라이하고 선명한 홉 쓴맛이 인상적인 독일 동부의 대표 필스너입니다.", t:[3,1,2,1] },
+            { id:"pl-6", cat:"pilsner", cont:"europe", country:"🇩🇪 독일", name:"바르슈타이너 (Warsteiner)", style:"저먼 필스너", abv:"4.8%", stores:STORES_MART, desc:"깔끔한 쌉쌀함과 은은한 몰트 단맛이 균형을 이룬 독일 필스너입니다.", t:[3,2,2,1] },
+            { id:"pl-7", cat:"pilsner", cont:"europe", country:"🇩🇰 덴마크", name:"칼스버그 필스너 (Carlsberg)", style:"필스너", abv:"4.7~5.0% (판본별 상이)", stores:STORES_MART, desc:"부담 없는 몰트 단맛과 은은한 홉 쓴맛이 어우러진 덴마크 대표 필스너입니다.", t:[2,2,2,1] },
+            { id:"pl-8", cat:"pilsner", cont:"europe", country:"🇧🇪 벨기에", name:"스텔라 아르투아 (Stella Artois)", style:"벨지안 필스너", abv:"5.0~5.2% (판본별 상이)", stores:STORES_MART, desc:"사츠 홉의 은은한 쌉싸름함과 가볍게 달콤한 몰트, 옥수수의 고소함이 조화로운 벨기에 대표 필스너입니다.", t:[2,2,2,1] },
+            { id:"pl-9", cat:"pilsner", cont:"europe", country:"🇨🇿 체코", name:"스타로프라멘 (Staropramen)", style:"체코 프리미엄 라거 (필스너 계열)", abv:"5.0%", stores:STORES_MART, desc:"프라하의 대표 맥주로 고소한 몰트와 은은한 쌉쌀함이 매력적입니다.", t:[2,2,3,1] },
+            { id:"pl-10", cat:"pilsner", cont:"europe", country:"🇵🇱 폴란드", name:"티스키에 (Tyskie)", style:"폴리시 필스너", abv:"5.6%", stores:STORES_MART, desc:"비교적 도수가 높고 깔끔한 쌉싸름함에 단단한 몰트 맛이 느껴지는 폴란드 대표 맥주입니다.", t:[3,2,3,1] },
+            { id:"pl-11", cat:"pilsner", cont:"asia", country:"🇨🇳 중국", name:"칭따오 (Tsingtao)", style:"필스너 스타일 라거", abv:"4.7%", stores:STORES_MART+", 중식당", desc:"중국을 대표하는 맥주. 가볍고 청량하며 중식과 특히 잘 어울립니다.", t:[2,2,2,1] },
+            { id:"pl-12", cat:"pilsner", cont:"americas", country:"🇺🇸 미국", name:"브루클린 필스너 (Brooklyn Pilsner)", style:"아메리칸 크래프트 필스너", abv:"5.1%", stores:"주류 스마트오더(데일리샷 등), 크래프트 보틀샵(입고 시즌별 상이)", desc:"드라이 홉핑으로 홉 향을 살린 뉴욕 크래프트 필스너입니다.", t:[3,2,2,1] },
+            { id:"pl-13", cat:"pilsner", cont:"americas", country:"🇺🇸 미국", name:"빅토리 프리마 필스 (Prima Pils)", style:"저먼 스타일 필스너", abv:"5.3%", stores:"주류 스마트오더(데일리샷 등), 크래프트 보틀샵(입고 시즌별 상이)", desc:"독일식 홉을 풍부하게 써서 쌉쌀함과 꽃향이 뚜렷한 미국 크래프트 필스너입니다.", t:[4,2,2,1] },
+            { id:"al-1", cat:"ale", cont:"europe", country:"🇧🇪 벨기에", name:"호가든 (Hoegaarden)", style:"벨지안 위트 에일", abv:"4.9%", stores:STORES_MART, desc:"고수씨와 오렌지 껍질로 향을 낸 부드러운 밀맥주. 상큼하고 가벼워 입문용으로 좋습니다.", t:[1,3,2,1] },
+            { id:"al-2", cat:"ale", cont:"europe", country:"🇧🇪 벨기에", name:"듀벨 (Duvel)", style:"벨지안 스트롱 골든 에일", abv:"8.5%", stores:STORES_CRAFT, desc:"높은 도수에도 가볍고 드라이한 끝맛, 풍부한 탄산과 과일·스파이스 향이 매력적입니다.", t:[3,2,3,1] },
+            { id:"al-3", cat:"ale", cont:"europe", country:"🇧🇪 벨기에", name:"레페 블론드 (Leffe Blonde)", style:"벨지안 블론드 에일", abv:"6.6%", stores:STORES_MART, desc:"바닐라와 과일, 은은한 스파이스 향이 부드럽게 어우러진 수도원 스타일 에일입니다.", t:[2,3,3,1] },
+            { id:"al-4", cat:"ale", cont:"europe", country:"🇧🇪 벨기에", name:"오르발 (Orval)", style:"트라피스트 에일", abv:"6.2%", stores:STORES_CRAFT, desc:"야생 효모 특유의 드라이하고 복합적인 풍미로 마니아층이 두터운 트라피스트 맥주입니다.", t:[3,2,3,1] },
+            { id:"al-5", cat:"ale", cont:"europe", country:"🇩🇪 독일", name:"파울라너 헤페 바이스 (Paulaner)", style:"헤페바이젠", abv:"5.5%", stores:STORES_MART, desc:"바나나와 정향 향이 어우러진 부드러운 독일식 밀맥주로 목넘김이 크리미합니다.", t:[1,3,3,1] },
+            { id:"al-6", cat:"ale", cont:"europe", country:"🇩🇪 독일", name:"에딩거 바이스비어 (Erdinger Weissbier)", style:"헤페바이젠", abv:"5.3%", stores:STORES_MART, desc:"쌉쌀한 정향향과 바나나향이 나고 탄산감이 비교적 강한 독일 밀맥주입니다.", t:[1,3,3,1] },
+            { id:"al-7", cat:"ale", cont:"europe", country:"🇩🇪 독일", name:"바이엔슈테판 헤페바이스 (Weihenstephaner)", style:"헤페바이젠", abv:"5.4%", stores:STORES_CRAFT, desc:"세계에서 가장 오래된 양조장 중 하나가 만든 밀맥주로 풍부한 바나나·정향 향이 대표적입니다.", t:[1,3,3,1] },
+            { id:"al-8", cat:"ale", cont:"europe", country:"🇩🇪 독일", name:"프란치스카너 헤페 바이스 (Franziskaner)", style:"헤페바이젠", abv:"5.0%", stores:STORES_MART, desc:"부드럽고 상큼한 과일향이 돋보이는 대표적인 독일 바이스비어입니다.", t:[1,3,3,1] },
+            { id:"al-9", cat:"ale", cont:"europe", country:"🇬🇧 영국", name:"풀러스 런던 프라이드 (London Pride)", style:"ESB / 브리티시 에일", abv:"4.7%", stores:STORES_CRAFT, desc:"캐러멜 몰트의 구수함과 은은한 홉 쓴맛이 조화로운 영국 전통 에일입니다.", t:[3,3,3,2] },
+            { id:"al-10", cat:"ale", cont:"europe", country:"🇮🇪 아일랜드", name:"스미딕스 레드 에일 (Smithwick's)", style:"아이리시 레드 에일", abv:"4.5%", stores:STORES_MART, desc:"구운 몰트의 달콤함과 부드러운 바디가 특징인 아일랜드 대표 레드 에일입니다.", t:[2,3,3,2] },
+            { id:"al-11", cat:"ale", cont:"asia", country:"🇰🇷 한국 (시판 수제맥주)", name:"제주 위트 에일 (Jeju Wit Ale)", style:"벨지안 위트 에일", abv:"5.3%", stores:"편의점, 대형마트, 주류 스마트오더, 수제맥주 펍", desc:"귤껍질 등 시트러스 향과 고수씨 향이 어우러진 제주맥주의 대표 밀맥주입니다.", t:[1,3,2,1] },
+            { id:"al-12", cat:"ale", cont:"asia", country:"🇰🇷 한국 (시판 수제맥주)", name:"제주 펠롱 에일 (Jeju Pelong Ale)", style:"아메리칸 페일 에일", abv:"5.5%", stores:"편의점, 대형마트, 주류 스마트오더, 수제맥주 펍", desc:"시트러스·꽃향과 캐러멜 몰트의 구수함, 쌉쌀한 끝맛이 어우러진 국내 대표 페일 에일입니다.", t:[3,2,3,1] },
+            { id:"al-13", cat:"ale", cont:"asia", country:"🇰🇷 한국 (시판 수제맥주)", name:"곰표 썸머에일", style:"페일 에일", abv:"5.0%", stores:"편의점, 대형마트, 주류 스마트오더, 수제맥주 펍", desc:"시트러스 향이 나고 깔끔하고 청량하게 마실 수 있는 국내 편의점 수제맥주입니다.", t:[2,2,2,1] },
+            { id:"al-14", cat:"ale", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"어메이징 브루잉 성수동 페일에일", style:"페일 에일", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"성수동 어메이징 브루잉컴퍼니의 페일 에일로 홉 향과 부드러운 몰트 균형을 즐길 수 있습니다.", t:[3,2,3,1] },
+            { id:"al-15", cat:"ale", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"핸드앤몰트 상상 페일 에일", style:"페일 에일", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"핸드앤몰트에서 선보인 페일 에일로 가볍게 즐기기 좋은 국내 크래프트 맥주입니다.", t:[2,2,2,1] },
+            { id:"al-16", cat:"ale", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"버드나무브루어리 백일홍 레드에일", style:"레드 에일", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"강릉 버드나무브루어리의 레드 에일로 구수한 몰트와 은은한 쌉쌀함이 특징입니다.", t:[2,3,3,2] },
+            { id:"al-17", cat:"ale", cont:"asia", country:"🇯🇵 일본", name:"요나요나 에일 (Yona Yona Ale)", style:"페일 에일", abv:"5.5%", stores:STORES_CRAFT, desc:"감귤류와 꽃향이 조화로운 일본 크래프트 페일 에일의 대표작입니다.", t:[3,2,3,1] },
+            { id:"al-18", cat:"ale", cont:"americas", country:"🇺🇸 미국", name:"시에라 네바다 페일 에일 (Pale Ale)", style:"아메리칸 페일 에일", abv:"5.6%", stores:STORES_CRAFT, desc:"캐스케이드 홉의 시트러스·솔향과 단단한 몰트가 균형을 이룬 아메리칸 페일 에일의 고전입니다.", t:[3,2,3,1] },
+            { id:"al-19", cat:"ale", cont:"americas", country:"🇺🇸 미국", name:"블루문 벨지안 화이트 (Blue Moon)", style:"벨지안 스타일 위트 에일", abv:"5.4%", stores:STORES_MART, desc:"오렌지 껍질과 고수씨 향이 나는 부드럽고 상큼한 미국식 밀맥주입니다.", t:[1,3,2,1] },
+            { id:"ip-1", cat:"ipa", cont:"europe", country:"🇬🇧 영국 (스코틀랜드)", name:"브루독 펑크 IPA (Punk IPA)", style:"IPA", abv:"5.4%", stores:STORES_CRAFT, desc:"트로피컬 과일과 시트러스 향의 홉이 터지는 크래프트 IPA의 상징적인 맥주입니다.", t:[4,2,3,1] },
+            { id:"ip-2", cat:"ipa", cont:"europe", country:"🇬🇧 영국", name:"비버타운 넥 오일 (Neck Oil)", style:"세션 IPA", abv:"4.3%", stores:STORES_CRAFT, desc:"도수는 낮추고 홉 향은 살린 세션 IPA로, 가볍게 여러 잔 마시기 좋습니다.", t:[3,2,2,1] },
+            { id:"ip-3", cat:"ipa", cont:"europe", country:"🇬🇧 영국", name:"그린킹 IPA (Greene King IPA)", style:"잉글리시 IPA", abv:"3.6%", stores:STORES_MART, desc:"도수가 낮고 순한 영국식 IPA로 홉 쓴맛은 약한 편이라 IPA 입문용에 가깝습니다.", t:[2,3,2,2] },
+            { id:"ip-4", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"구스 아일랜드 IPA", style:"IPA", abv:"5.9%", stores:STORES_CRAFT, desc:"시트러스·꽃향 홉과 캐러멜 몰트의 여운이 균형 잡힌 시카고 대표 IPA입니다.", t:[4,2,3,1] },
+            { id:"ip-5", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"스톤 IPA (Stone IPA)", style:"웨스트코스트 IPA", abv:"6.9%", stores:STORES_CRAFT, desc:"쌉쌀하고 드라이한 웨스트코스트 스타일의 정석. 강한 홉 쓴맛과 깨끗한 끝맛이 특징입니다.", t:[5,1,3,1] },
+            { id:"ip-6", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"시에라 네바다 토파 (Torpedo Extra IPA)", style:"엑스트라 IPA", abv:"7.2%", stores:STORES_CRAFT, desc:"홉 향을 극대화한 방식으로 만든 송진·시트러스 풍미의 강렬한 IPA입니다.", t:[5,2,4,1] },
+            { id:"ip-7", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"시에라 네바다 헤이지 리틀 씽 (Hazy Little Thing)", style:"헤이지 IPA", abv:"6.7%", stores:STORES_CRAFT, desc:"탁하고 부드러운 질감에 열대과일·시트러스 향이 풍성한 뉴잉글랜드 스타일 IPA입니다.", t:[2,3,3,1] },
+            { id:"ip-8", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"라구니타스 IPA (Lagunitas IPA)", style:"아메리칸 IPA", abv:"6.2%", stores:STORES_CRAFT, desc:"캐러멜 몰트의 단맛과 시트러스·소나무 향 홉이 어우러진 캘리포니아 대표 IPA입니다.", t:[4,3,3,1] },
+            { id:"ip-9", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"발라스트 포인트 스컬핀 IPA (Sculpin)", style:"IPA", abv:"7.0%", stores:STORES_CRAFT, desc:"복숭아·망고·시트러스의 과일향이 폭발하는 IPA로 크래프트 팬들에게 인기가 높습니다.", t:[4,2,3,1] },
+            { id:"ip-10", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"파운더스 올 데이 IPA (All Day IPA)", style:"세션 IPA", abv:"4.7%", stores:STORES_CRAFT, desc:"도수가 낮아 부담 없이 홉 향을 즐길 수 있는 미국 대표 세션 IPA입니다.", t:[3,2,2,1] },
+            { id:"ip-11", cat:"ipa", cont:"americas", country:"🇺🇸 미국", name:"도그피시 헤드 60분 IPA (60 Minute IPA)", style:"IPA", abv:"6.0%", stores:STORES_CRAFT, desc:"끓이는 동안 60분간 홉을 지속 투입하는 방식으로 균형 잡힌 쓴맛과 시트러스 향을 냅니다.", t:[4,2,3,1] },
+            { id:"ip-12", cat:"ipa", cont:"asia", country:"🇰🇷 한국 (시판 수제맥주)", name:"세븐브로이 강서 IPA", style:"IPA", abv:"6%대 (라벨 확인)", stores:"편의점, 대형마트, 주류 스마트오더, 수제맥주 펍", desc:"국내 크래프트 맥주 대중화를 이끈 세븐브로이의 대표 IPA로, 시트러스 홉 향이 돋보입니다.", t:[4,2,3,1] },
+            { id:"ip-13", cat:"ipa", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"버드나무브루어리 하슬라 IPA", style:"IPA", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"강릉 버드나무브루어리의 IPA로 홉의 향과 쌉쌀함을 즐길 수 있는 국내 크래프트 맥주입니다.", t:[4,2,3,1] },
+            { id:"ip-14", cat:"ipa", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"갈매기브루잉 갈매기 IPA", style:"IPA", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"부산 갈매기브루잉의 IPA로 지역 크래프트 맥주 팬들에게 인기가 있습니다.", t:[4,2,3,1] },
+            { id:"ip-15", cat:"ipa", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"무등산브루어리 워메 IPA", style:"IPA", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"광주 무등산브루어리의 IPA로 지역색이 담긴 이름이 인상적인 로컬 크래프트 맥주입니다.", t:[4,2,3,1] },
+            { id:"ip-16", cat:"ipa", cont:"asia", country:"🇰🇷 한국 (수제맥주)", name:"미스터리 브루잉 더그래버 (The Grabber)", style:"헤이지 IPA", abv:"라벨 확인", stores:"수제맥주 탭룸·펍, 크래프트 보틀샵, 주류 스마트오더(데일리샷 등)", desc:"시트라 싱글 홉을 사용한 헤이지 IPA로 신선한 열대과일 향과 쥬시한 맛이 특징입니다.", t:[2,3,3,1] },
+            // ===== 프리미엄 · 한정판 =====
+            { id:"pr-1", cat:"premium", cont:"americas", country:"🇺🇸 미국", name:"구스 아일랜드 버번 카운티 스타우트 (Bourbon County Stout)", style:"배럴 에이지드 임페리얼 스타우트", abv:"13~15%대 (연도별)", stores:"데일리샷·와인앤모어·크래프트 보틀샵 (연 1회 한정 입고)", desc:"버번 위스키 오크통에서 12개월 숙성한 미국 대표 프리미엄 흑맥주. 바닐라·다크초콜릿·오크 향이 폭발합니다. 매년 블랙프라이데이 시즌에 한정 출시됩니다.", t:[4,4,5,5] },
+            { id:"pr-2", cat:"premium", cont:"europe", country:"🇧🇪 벨기에", name:"웨스트블레테렌 12 (Westvleteren 12)", style:"벨지안 쿼드루펠", abv:"10.2%", stores:"국내 정식 유통 극히 희소 · 개인 직구/경매·일부 고급 보틀샵", desc:"트라피스트 수도원에서만 소량 생산하는 '세계에서 가장 맛있는 맥주'로 자주 꼽히는 전설의 쿼드. 국내에서는 구하기가 매우 어렵습니다.", t:[3,4,5,2] },
+            { id:"pr-3", cat:"premium", cont:"europe", country:"🇸🇪 스웨덴", name:"옴니폴로 노아 피칸 머드 케이크 (Omnipollo Noa)", style:"임페리얼 페이스트리 스타우트", abv:"11.0%", stores:"데일리샷·크래프트 보틀샵 (입고 시즌별)", desc:"피칸 파이와 초콜릿 머드 케이크를 마시는 듯한 꾸덕한 질감의 디저트 스타우트. 보틀샵 마니아층이 두텁습니다.", t:[3,5,5,4] },
+            { id:"pr-4", cat:"premium", cont:"americas", country:"🇺🇸 미국", name:"파운더스 브렉퍼스트 스타우트 (Breakfast Stout)", style:"더블 초콜릿 커피 오트밀 스타우트", abv:"8.3%", stores:"데일리샷·크래프트 보틀샵", desc:"원두와 초콜릿, 귀리를 아낌없이 넣어 진한 모카 라떼처럼 풍성한 바디감을 보여주는 스테디셀러 프리미엄 스타우트입니다.", t:[4,3,5,5] },
+            { id:"pr-5", cat:"premium", cont:"europe", country:"🇩🇰 덴마크", name:"미켈러 비어 긱 브렉퍼스트 (Beer Geek Breakfast)", style:"오트밀 커피 스타우트", abv:"7.5%", stores:"데일리샷·크래프트 보틀샵·미켈러 바", desc:"스페셜티 커피 원두와 귀리를 사용해 진한 핸드드립 커피 아로마와 부드러운 바디를 자랑하는 북유럽 명작입니다.", t:[4,3,4,5] },
+            { id:"pr-6", cat:"premium", cont:"asia", country:"🇰🇷 한국 (수제)", name:"어메이징 브루잉 시그니처 임페리얼 스타우트 (시즌)", style:"임페리얼 스타우트", abv:"8~10%대", stores:"성수동 어메이징 브루잉 탭룸 · 데일리샷", desc:"성수동 대표 크래프트 양조장의 시즌 한정 고도수 흑맥주. 탭룸에서 가장 신선하게 맛볼 수 있습니다.", t:[4,3,5,5] },
+            { id:"pr-7", cat:"premium", cont:"europe", country:"🇪🇪 에스토니아", name:"포히알라 외오 (Põhjala Öö)", style:"임페리얼 발틱 포터", abv:"10.5%", stores:"데일리샷·크래프트 보틀샵", desc:"에스토니아어로 '밤'을 뜻하며, 건자두·다크초콜릿·구운 맥아의 깊고 농밀한 복합미가 뛰어난 발틱 포터입니다.", t:[4,4,5,5] }
+        ];
+        addBeers.forEach((x, i) => {
+            const t = x.t;
+            let tip = "";
+            let draft = "캔·병 위주 (생맥주 매장 확인 필요)";
+            if (x.cat === "premium") {
+                tip = "한정·고가 제품이라 일반 편의점엔 거의 없습니다. 데일리샷 앱·와인앤모어·크래프트 보틀샵에서 시즌 입고를 확인하세요. 일부는 성수동 어메이징브루잉·서울브루어리 탭룸에서 시즌 한정으로 나올 때가 있습니다.";
+                draft = "대부분 병·캔. 일부 탭룸에서 시즌 생맥주 가능";
+            } else if (x.id === "lg-8" || (x.name && x.name.includes("삿포로"))) {
+                tip = "성수동 ‘삿포로 프리미엄 비어스탠드’에서 생맥주를 전문으로 판매합니다. 편의점·마트에서도 캔으로 쉽게 구할 수 있습니다.";
+                draft = "성수 삿포로 프리미엄 비어스탠드에서 생맥주 가능";
+            } else if (x.country && x.country.includes("일본")) {
+                tip = "전국 편의점·대형마트·이자카야에서 쉽게 구매 가능. 생맥주는 일본식 이자카야·일부 일식당에서 취급하는 경우가 많습니다.";
+                draft = "이자카야·일식당에서 생맥주 취급 자주 있음";
+            } else if (x.cont === "asia" && x.country && x.country.includes("한국") && (x.cat === "ale" || x.cat === "ipa" || x.cat === "stout" || x.name.includes("수제"))) {
+                tip = "해당 양조장 탭룸(성수 어메이징브루잉, 서울브루어리 성수, 부산 갈매기브루잉 등)에서 가장 신선하게 마실 수 있습니다. 데일리샷·크래프트 보틀샵에서도 판매합니다.";
+                draft = "양조장 탭룸에서 생맥주 가능";
+            } else if (x.name && (x.name.includes("기네스") || x.name.includes("Guinness"))) {
+                tip = "이태원 ‘베이비기네스’, 한남 ‘기네스72’ 등 기네스 생맥주 전문 펍에서 질소 생맥주를 맛볼 수 있습니다. 캔은 편의점 어디서나 판매.";
+                draft = "이태원 베이비기네스, 한남 기네스72 등에서 생맥주 가능";
+            } else if (x.cat === "lager" || x.cat === "pilsner") {
+                tip = "전국 편의점·대형마트·일반 주점에서 쉽게 구할 수 있습니다.";
+                draft = "많은 호프·주점에서 생맥주 취급";
+            }
+            beers.push({
+                id: x.id, rank: 100 + i, name: x.name, continent: x.cont, country: x.country,
+                style: x.style, abv: x.abv, price: PRICE_CHECK, stores: x.stores, image: "",
+                desc: x.desc, category: x.cat, tip: tip, draft: draft,
+                tasting: { bitterness: t[0], sweetness: t[1], body: t[2], roast: t[3] }
+            });
+        });
+        // 남은 맥주에 기본 구매·생맥주 안내 채우기
+        beers.forEach(b => {
+            if (!b.tip) {
+                if (b.country && b.country.includes("한국") && b.category !== "lager" && b.category !== "pilsner") {
+                    b.tip = "해당 양조장 탭룸이나 크래프트 보틀샵, 데일리샷에서 구매하세요. 성수 어메이징브루잉·서울브루어리 등에서 시음 가능한 경우가 많습니다.";
+                    b.draft = "양조장 탭룸에서 생맥주 가능";
+                } else if (b.category === "lager" || b.category === "pilsner") {
+                    b.tip = "전국 편의점·대형마트·일반 주점에서 쉽게 구할 수 있습니다.";
+                    b.draft = "많은 호프·주점에서 생맥주 취급";
+                } else {
+                    b.tip = "주류 스마트오더(데일리샷 등)·크래프트 보틀샵·수입맥주 전문점에서 확인하세요.";
+                    b.draft = "캔·병 위주 (생맥주 매장 확인 필요)";
+                }
+            }
+            if (!b.draft) b.draft = "캔·병 위주";
+        });
+        const catById = id => CATEGORIES.find(c => c.id === id) || { name: "", color: "#d98a2b", emoji: "" };
+        function rankInGroup(beer) {
+            const group = beers.filter(b => b.continent === beer.continent && b.category === beer.category).sort((a, b) => a.rank - b.rank);
+            return group.indexOf(beer) + 1;
+        }
+        let currentCategoryFilter = "all";
+        function renderCategoryTabs() {
+            const nav = document.getElementById("cat-tabs");
+            const allBtn = `<button class="cat-tab-btn ${currentCategoryFilter === "all" ? "active" : ""}" style="--cat:#d98a2b" onclick="selectCategory('all')">All<small>${beers.length}</small></button>`;
+            const catBtns = CATEGORIES.map(c =>
+                `<button class="cat-tab-btn ${currentCategoryFilter === c.id ? "active" : ""}" style="--cat:${c.color}" onclick="selectCategory('${c.id}')">${c.name}<small>${beers.filter(b => b.category === c.id).length} · ${c.hint}</small></button>`
+            ).join("");
+            nav.innerHTML = allBtn + catBtns;
+        }
+        function selectCategory(id) { currentCategoryFilter = id; renderCategoryTabs(); renderContinents(); }
+
+        // ===== 즐겨찾기 (localStorage) =====
+        const FAV_KEY = "worldbeer:favs:v1";
+        function loadFavs() { try { return JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); } catch(e) { return []; } }
+        function saveFavs(arr) { try { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); } catch(e) {} }
+        let favIds = loadFavs();
+        function toggleFav(id, e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            if (favIds.includes(id)) favIds = favIds.filter(x => x !== id);
+            else favIds.push(id);
+            saveFavs(favIds);
+            renderContinents();
+            renderTodayPick();
+        }
+        function isFav(id) { return favIds.includes(id); }
+
+        // Untappd 참고 점수 (주요 맥주)
+        const UNTAPPD = {
+            "eu-1": 3.77, "eu-2": 3.45, "eu-3": 3.57, "pl-1": 3.38, "lg-1": 3.25,
+            "am-3": 4.35, "am-4": 4.20, "pr-1": 4.35, "pr-2": 4.40, "ip-1": 3.75,
+            "al-1": 3.55, "al-2": 3.85, "lg-jp2": 3.40, "as-13": 3.20
+        };
+
+        // ===== 오늘의 추천 =====
+        function pickToday() {
+            const seed = new Date().toISOString().slice(0,10);
+            let h = 0; for (let i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i)) >>> 0;
+            return beers[h % beers.length];
+        }
+        function renderTodayPick() {
+            const el = document.getElementById("today-pick");
+            if (!el) return;
+            const b = pickToday();
+            const u = UNTAPPD[b.id] ? `<span class="untappd-badge">★ ${UNTAPPD[b.id]}</span>` : "";
+            el.innerHTML = `<div class="today-pick-inner">
+                <span class="today-pick-label">Today</span>
+                <span class="today-pick-name" onclick="openBeerModal('${b.id}')">${b.name}</span>
+                <span class="today-pick-meta">${catById(b.category).name} · ${b.country} · ${b.abv}${u}</span>
+                <button type="button" class="fav-btn ${isFav(b.id)?"on":""}" style="position:static;width:auto;height:auto;padding:4px 10px;border-radius:8px;font-size:13px" onclick="toggleFav('${b.id}',event)">${isFav(b.id)?"★ Saved":"☆ Save"}</button>
+            </div>`;
+        }
+
+        /* ================= 실제 맥주 사진 (Wikimedia Commons / Wikipedia, 사진 보기 시 불러옴) ================= */
+        const normStr = t => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        // [검색어, 사진 제목에 반드시 들어가야 하는 단어]
+        const PHOTO_Q = {
+            "eu-1": ["Guinness Draught", "guinness"], "eu-2": ["Kozel beer", "kozel"], "eu-3": ["Erdinger Dunkel", "erdinger"], "eu-4": ["Köstritzer Schwarzbier", "kostritzer"],
+            "eu-5": ["Leffe Brune", "leffe"], "eu-6": null, "eu-7": ["Young's Double Chocolate Stout", "young"], "eu-8": ["Mikkeller Beer Geek Breakfast", "geek"],
+            "eu-9": ["Omnipollo", "omnipollo"], "eu-10": ["Põhjala", "pohjala"], "eu-11": ["Murphy's Irish Stout", "murphy"], "eu-12": ["Samuel Smith Oatmeal Stout", "samuel"],
+            "eu-13": ["Fuller's Black Cab", "fuller"],
+            "as-13": ["Asahi Super Dry", "asahi"], "as-16": ["Kirin Ichiban", "kirin"], "as-17": ["Hitachino Nest", "hitachino"],
+            "am-1": ["Founders Porter", "founders"], "am-2": ["Ballast Point Victory at Sea", "ballast"], "am-3": ["Goose Island Bourbon County Stout", "goose"], "am-4": ["Founders Breakfast Stout", "founders"],
+            "am-5": ["Left Hand Milk Stout", "lefthand"], "am-6": ["Oskar Blues Ten Fidy", "fidy"], "am-7": ["Sierra Nevada Narwhal", "narwhal"],
+            "am-8": ["Rogue Shakespeare Stout", "rogue"], "am-9": ["Bell's Kalamazoo Stout", "bell"], "am-10": ["Modern Times Black House", "modern"],
+            "am-11": ["Negra Modelo", "modelo"],
+            "af-1": ["Castle Milk Stout", "castle"], "af-3": null, "lg-1": ["Heineken beer", "heineken"], "lg-9": null, "lg-10": null, "lg-15": ["Corona Extra", "corona"],
+            "lg-16": ["Budweiser beer", "budweiser"], "lg-17": ["Samuel Adams Boston Lager", "samuel"], "lg-18": ["Castle Lager", "castle"],
+            "pl-1": ["Pilsner Urquell", "pilsner"], "pl-4": ["Beck's beer", "beck"], "pl-7": ["Carlsberg beer", "carlsberg"], "pl-8": ["Stella Artois", "stella"],
+            "pl-13": ["Victory Prima Pils", "victory"], "al-1": ["Hoegaarden", "hoegaarden"], "al-2": ["Duvel beer", "duvel"], "al-5": ["Paulaner Weissbier", "paulaner"],
+            "al-9": ["Fuller's London Pride", "fuller"], "al-18": ["Sierra Nevada Pale Ale", "sierra"],
+            "al-19": ["Blue Moon Belgian White", "bluemoon"], "ip-1": ["BrewDog Punk IPA", "punk"], "ip-2": ["Beavertown Neck Oil", "beavertown"],
+            "ip-4": ["Goose Island IPA", "goose"], "ip-5": ["Stone IPA", "stone"], "ip-6": ["Sierra Nevada Torpedo", "torpedo"], "ip-7": ["Sierra Nevada Hazy Little Thing", "hazylittle"],
+            "ip-8": ["Lagunitas IPA", "lagunitas"], "ip-10": ["Founders All Day IPA", "founders"], "ip-11": ["Dogfish Head 60 Minute IPA", "dogfish"],
+            "pr-1": ["Goose Island Bourbon County Stout", "goose"], "pr-2": ["Westvleteren", "westvleteren"], "pr-3": ["Omnipollo", "omnipollo"],
+            "pr-4": ["Founders Breakfast Stout", "founders"], "pr-5": ["Mikkeller Beer Geek Breakfast", "geek"], "pr-7": ["Põhjala", "pohjala"]
+        };
+        function photoQueryFor(beer) {
+            if (beer.country.includes("한국")) return null;                // 국내 제품은 공개 사진이 적어 제외
+            if (beer.id in PHOTO_Q) { const v = PHOTO_Q[beer.id]; return v ? { query: v[0], token: v[1] } : null; }
+            const m = beer.name.match(/\(([^)]*[A-Za-z][^)]*)\)/);
+            if (!m) return null;
+            const query = m[1].trim(), words = query.split(/\s+/);
+            let token = normStr(words[0]); if (token.length < 4 && words[1]) token += normStr(words[1]);
+            return token.length >= 3 ? { query, token } : null;
+        }
+        const BAD_FILE = /logo|\.svg|icon|\bmap\b|flag|coat of arms|label|poster|diagram|chart|brewery|building|factory/i;
+        const photoMem = {};
+        function cacheGet(id) { try { return JSON.parse(localStorage.getItem("beerphoto:v1:" + id) || "null"); } catch (e) { return null; } }
+        function cacheSet(id, v) { try { localStorage.setItem("beerphoto:v1:" + id, JSON.stringify(v)); } catch (e) {} }
+        async function fetchJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
+        async function findPhoto(beer) {
+            const q = photoQueryFor(beer); if (!q) return null;
+            try {
+                const u = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent("filetype:bitmap " + q.query)}&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&format=json&origin=*`;
+                const j = await fetchJson(u);
+                const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
+                for (const p of pages) {
+                    const ii = p.imageinfo && p.imageinfo[0];
+                    if (!ii || !ii.thumburl) continue;
+                    if (!/\.jpe?g$/i.test(p.title) || BAD_FILE.test(p.title)) continue;
+                    if (!normStr(p.title).includes(q.token)) continue;
+                    const lic = ii.extmetadata && ii.extmetadata.LicenseShortName ? ii.extmetadata.LicenseShortName.value : "";
+                    return { src: ii.thumburl, page: ii.descriptionurl, credit: "Wikimedia Commons", lic };
+                }
+            } catch (e) {}
+            try {
+                const u = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q.query)}&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=640&format=json&origin=*`;
+                const j = await fetchJson(u);
+                const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
+                for (const p of pages) {
+                    const th = p.thumbnail && p.thumbnail.source;
+                    if (!th || !/\.jpe?g/i.test(th) || BAD_FILE.test(th)) continue;
+                    if (!normStr(p.title).includes(q.token)) continue;
+                    return { src: th, page: "https://en.wikipedia.org/wiki/" + encodeURIComponent(p.title.replace(/ /g, "_")), credit: "Wikipedia", lic: "" };
+                }
+            } catch (e) {}
+            return null;
+        }
+        function getPhoto(beer) {
+            if (beer.image && beer.image.trim() !== "") return Promise.resolve({ src: beer.image, page: beer.image, credit: "제공 이미지", lic: "" });
+            if (photoMem[beer.id]) return photoMem[beer.id];
+            const c = cacheGet(beer.id);
+            if (c) return (photoMem[beer.id] = Promise.resolve(c));
+            return (photoMem[beer.id] = findPhoto(beer).then(r => { if (r) cacheSet(beer.id, r); else delete photoMem[beer.id]; return r; }));
+        }
+        const photoQueue = []; let photoActive = 0;
+        function pumpPhotos() {
+            while (photoActive < 3 && photoQueue.length) {
+                const el = photoQueue.shift(); photoActive++;
+                const beer = beers.find(b => b.id === el.dataset.photoId);
+                getPhoto(beer).then(ph => {
+                    if (ph) { el.style.backgroundImage = `url("${ph.src}")`; el.className = "card-photo ready"; }
+                    else el.className = "card-photo";
+                }).catch(() => { el.className = "card-photo"; }).finally(() => { photoActive--; pumpPhotos(); });
+            }
+        }
+        let photoObserver = null;
+        function observePhotos() {
+            if (photoObserver) photoObserver.disconnect();
+            const els = document.querySelectorAll(".card-photo[data-photo-id]");
+            const load = el => {
+                const beer = beers.find(b => b.id === el.dataset.photoId);
+                if (!beer || (!beer.image && !photoQueryFor(beer))) return;
+                el.className = "card-photo loading"; photoQueue.push(el); pumpPhotos();
+            };
+            if (!("IntersectionObserver" in window)) { els.forEach(load); return; }
+            photoObserver = new IntersectionObserver(entries => entries.forEach(en => { if (en.isIntersecting) { photoObserver.unobserve(en.target); load(en.target.querySelector(".card-photo")); } }), { rootMargin: "300px" });
+            els.forEach(el => photoObserver.observe(el.closest(".beer-card")));
+        }
+        function openLightbox(id) {
+            const beer = beers.find(b => b.id === id);
+            getPhoto(beer).then(ph => {
+                if (!ph) return;
+                const big = ph.src.replace(/\/\d+px-/, "/1280px-");
+                const lb = document.getElementById("lightbox");
+                lb.innerHTML = `<img src="${big}" onerror="this.onerror=null;this.src='${ph.src}'" alt="${beer.name}"><div class="lb-credit">${beer.name} · 사진: <a href="${ph.page}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${ph.credit}</a>${ph.lic ? " · " + ph.lic : ""}<br>화면을 누르면 닫혀요</div>`;
+                lb.classList.add("open");
+            });
+        }
+        function closeLightbox() { document.getElementById("lightbox").classList.remove("open"); }
+
+        let currentContinentFilter = "all";
+        let currentSearchQuery = "";
+        let favOnly = false;
+        let abvFilter = "all";
+
+        function parseAbv(abvStr) {
+            if (!abvStr) return null;
+            const m = String(abvStr).match(/(\d+(?:\.\d+)?)/);
+            return m ? parseFloat(m[1]) : null;
+        }
+        function matchesAbv(beer) {
+            if (abvFilter === "all") return true;
+            const v = parseAbv(beer.abv);
+            if (v == null) return abvFilter !== "high"; // 라벨 확인 등은 mid/low에 포함
+            if (abvFilter === "low") return v < 5;
+            if (abvFilter === "mid") return v >= 5 && v <= 7;
+            if (abvFilter === "high") return v > 7;
+            return true;
+        }
+        function toggleFavOnly(btn) {
+            favOnly = !favOnly;
+            if (btn) btn.classList.toggle("active", favOnly);
+            renderContinents();
+        }
+        function setAbvFilter(val) {
+            abvFilter = val || "all";
+            renderContinents();
+        }
+
+        function renderStatBar(label, value) {
+            const percent = (value / 5) * 100;
+            return `
+                <div class="stat-row">
+                    <span class="stat-label">${label}</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${percent}%;"></div>
+                    </div>
+                    <span class="stat-val">${value}/5</span>
+                </div>
+            `;
+        }
+
+        function renderBeerCard(beer) {
+            const u = UNTAPPD[beer.id] ? `<span class="untappd-badge">★ ${UNTAPPD[beer.id]}</span>` : "";
+            return `
+                <article class="beer-card" style="--cat:${catById(beer.category).color}" onclick="openBeerModal('${beer.id}')">
+                    <button type="button" class="fav-btn ${isFav(beer.id)?"on":""}" title="즐겨찾기" onclick="toggleFav('${beer.id}', event)">${isFav(beer.id)?"★":"☆"}</button>
+                    <div>
+                        <div class="card-photo" data-photo-id="${beer.id}"></div>
+                        <div class="card-top">
+                            <span class="cat-badge">${catById(beer.category).name}</span>
+                            <span class="country-badge">${beer.country}</span>
+                        </div>
+                        <h3>${beer.name}${u}</h3>
+                        <div class="meta">${beer.style} · ${beer.abv}</div>
+                        <div class="price-tag">${beer.price}</div>
+                        <p class="desc">${beer.desc}</p>
+                    </div>
+                    <div>
+                        <div class="tasting-box">
+                            <div class="tasting-title">Profile</div>
+                            ${renderStatBar("Bitter", beer.tasting.bitterness)}
+                            ${renderStatBar("Sweet", beer.tasting.sweetness)}
+                            ${renderStatBar("Body", beer.tasting.body)}
+                            ${renderStatBar("Roast", beer.tasting.roast)}
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        let currentModalId = null;
+        function openBeerModal(beerId) {
+            const beer = beers.find(b => b.id === beerId);
+            if (!beer) return;
+
+            const photoBox = document.getElementById("modal-photo-box");
+            const contentBox = document.getElementById("modal-content");
+
+            currentModalId = beer.id;
+            photoBox.style.display = "none";
+            photoBox.className = "modal-photo-box";
+            photoBox.innerHTML = "";
+            getPhoto(beer).then(ph => {
+                if (!ph || currentModalId !== beer.id) return;
+                photoBox.className = "modal-photo-box has-photo";
+                photoBox.style.display = "flex";
+                photoBox.onclick = () => openLightbox(beer.id);
+                photoBox.innerHTML = `<img src="${ph.src}" alt="${beer.name}"><div class="photo-credit">사진: <a href="${ph.page}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${ph.credit}</a>${ph.lic ? " · " + ph.lic : ""} · 눌러서 크게 보기</div>`;
+            });
+
+            const queryEncoded = encodeURIComponent(beer.name.split("(")[0].trim());
+            const dailymotionOrSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(beer.name.split("(")[0].trim() + " 데일리샷 가격")}`;
+            const naverSearchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(queryEncoded + " 맥주 판매처")}`;
+
+            const tipHtml = beer.tip
+                ? `<div class="store-box" style="border-color:#7c3aed;background:#1e1530;margin-bottom:14px;">
+                    <div class="store-box-title" style="color:#c4b5fd;">📍 어디서 사먹을 수 있을까?</div>
+                    <p class="store-channels" style="margin:0 0 8px;color:#e9d5ff;">${beer.tip}</p>
+                    ${beer.draft ? `<p class="store-channels" style="margin:0;color:#c4b5fd;font-size:13px;"><strong>생맥주:</strong> ${beer.draft}</p>` : ""}
+                   </div>`
+                : (beer.draft ? `<div class="store-box" style="border-color:#7c3aed;background:#1e1530;margin-bottom:14px;">
+                    <div class="store-box-title" style="color:#c4b5fd;">🍺 생맥주 정보</div>
+                    <p class="store-channels" style="margin:0;color:#e9d5ff;">${beer.draft}</p>
+                   </div>` : "");
+            contentBox.innerHTML = `
+                <div class="card-top">
+                    <span class="cat-badge" style="--cat:${catById(beer.category).color}">${catById(beer.category).name} ${rankInGroup(beer)}위</span>
+                    <span class="country-badge">${beer.country}</span>
+                </div>
+                <h2 id="modal-beer-title" class="modal-title">${beer.name}</h2>
+                <div class="modal-submeta">${beer.style} · 도수 ${beer.abv}</div>
+                <p class="desc">${beer.desc}</p>
+
+                ${tipHtml}
+
+                <div class="store-box">
+                    <div class="store-box-title">🛒 판매처 & 참고 가격</div>
+                    <div class="store-price">💰 ${beer.price}</div>
+                    <p class="store-channels"><strong>주요 판매처:</strong> ${beer.stores}</p>
+                    <div class="store-links">
+                        <a class="store-link-btn" href="${dailymotionOrSearchUrl}" target="_blank" rel="noopener noreferrer">스마트오더/데일리샷 검색</a>
+                        <a class="store-link-btn secondary" href="${naverSearchUrl}" target="_blank" rel="noopener noreferrer">판매처·입고 정보 검색</a>
+                        <a class="store-link-btn secondary" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(beer.name.split("(")[0].trim() + " 맥주")}" target="_blank" rel="noopener noreferrer">🔍 실제 사진 더 보기</a>
+                    </div>
+                </div>
+
+                <div class="tasting-box">
+                    <div class="tasting-title">테이스팅 수치 (5점 만점)</div>
+                    ${renderStatBar("쓴맛", beer.tasting.bitterness)}
+                    ${renderStatBar("단맛", beer.tasting.sweetness)}
+                    ${renderStatBar("바디감", beer.tasting.body)}
+                    ${renderStatBar("로스팅", beer.tasting.roast)}
+                </div>
+            `;
+
+            document.getElementById("beer-modal").classList.add("open");
+        }
+
+        function closeBeerModal() {
+            document.getElementById("beer-modal").classList.remove("open");
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === "beer-modal") {
+                closeBeerModal();
+            }
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                closeBeerModal(); closeLightbox();
+            }
+        });
+
+        function renderContinents() {
+            const container = document.getElementById("continent-container");
+            container.innerHTML = "";
+
+            const targetContinents = currentContinentFilter === "all"
+                ? continents
+                : continents.filter(c => c.id === currentContinentFilter);
+
+            const q = currentSearchQuery.trim().toLowerCase();
+            let totalVisible = 0;
+
+            targetContinents.forEach(cont => {
+                const list = beers
+                    .filter(b => b.continent === cont.id)
+                    .filter(b => currentCategoryFilter === "all" || b.category === currentCategoryFilter)
+                    .filter(b => !favOnly || isFav(b.id))
+                    .filter(b => matchesAbv(b))
+                    .filter(b => {
+                        if (!q) return true;
+                        const targetText = `${b.name} ${b.country} ${b.style} ${b.desc} ${b.stores} ${catById(b.category).name}`.toLowerCase();
+                        return targetText.includes(q);
+                    })
+                    .sort((a, b) => a.rank - b.rank);
+
+                if (list.length === 0) return;
+                totalVisible += list.length;
+
+                const section = document.createElement("section");
+                section.className = "continent-section";
+
+                const shortName = cont.name.replace(/🇪🇺 |🌏 |🌎 |🌍 /g, "").split("(")[0].trim();
+                section.innerHTML = `
+                    <button class="continent-header" type="button" onclick="toggleSection(this)">
+                        <span>${shortName} <small style="color:#c7b59b; font-weight:normal;">${list.length}</small></span>
+                        <span class="toggle-hint">▲</span>
+                    </button>
+                    <div class="continent-body">
+                        ${list.map(renderBeerCard).join("")}
+                    </div>
+                `;
+
+                container.appendChild(section);
+            });
+
+            if (totalVisible === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#c7b59b; padding:40px 0;">검색 조건에 맞는 맥주가 없습니다.</p>`;
+                return;
+            }
+
+            const note = document.createElement("p");
+            note.className = "price-note";
+            note.textContent = "* Prices & stores are approximate and change often. Check DailyShot / bottle shops for limited editions. Stout includes porters & dark lagers.";
+            container.appendChild(note);
+            observePhotos();
+        }
+
+        function toggleSection(headerBtn) {
+            const body = headerBtn.nextElementSibling;
+            const hint = headerBtn.querySelector(".toggle-hint");
+            const isCollapsed = body.classList.toggle("collapsed");
+            hint.textContent = isCollapsed ? "펼치기 ▼" : "접기 / 펴기 ▲";
+        }
+
+        function selectContinentTab(continentId, clickedBtn) {
+            currentContinentFilter = continentId;
+            document.querySelectorAll("#continent-tabs .top-tab-btn").forEach(btn => btn.classList.remove("active"));
+            if (clickedBtn) clickedBtn.classList.add("active");
+            renderContinents();
+        }
+
+        function handleSearch(value) {
+            currentSearchQuery = value;
+            renderContinents();
+        }
+
+        if (window.innerWidth < 720) { document.getElementById("beer-guide").open = false; }
+        renderCategoryTabs();
+        renderContinents();
+        renderTodayPick();
+    </script>
+
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()" role="dialog" aria-label="사진 크게 보기"></div>
+</body>
+</html>
